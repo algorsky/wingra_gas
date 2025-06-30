@@ -1,0 +1,9 @@
+﻿Site,site,biomass,rating,rating_site,geo_site,latitude,longitude
+Site_1,1,0,1,Site 1,P1,43.05219,-89.4241
+Site_2,2,20.7,4,Site 4,L.SW,43.04965,-89.4259
+Site_3,3,16.38,3,Site 3,L.W,43.04994,-89.42984
+Site_4,4,45.12,6,Site 6,L.NW,43.053444,-89.428653
+Site_5,5,8.54,2,Site 2,P2,43.0537,-89.4177
+Site_6,6,98.22,7,Site 7,L.E,43.05371,-89.41196
+Site_7,7,227.25,8,Site 8,L.SE,43.05073,-89.41499
+Site_8,8,38.33,5,Site 5,L.NE,43.05677,-89.41814
