@@ -25,7 +25,7 @@ bathy <- st_set_crs(bathy, 3071)
 # 
 # nlcd.2023 = terra::rast('data/gis/NCLD/Annual_NLCD_LndCov_2023_CU_C1V0_5yBUfLryZkDCeOYocVzN.tiff')
 # terra::plot(nlcd.2023)
-nlcd <- rast("data/gis/nlcd_export.tif")
+nlcd.2023 <- rast("data/gis/nlcd_export.tif")
 
 # Transform CRS
 wingraWS = st_transform(wingraWS, st_crs(nlcd.2023))
@@ -68,7 +68,7 @@ palette_merge["Shrub/Grassland"] = '#a6c7a5'
 
 # Merge landuse
 landuse_merge = landuse_df %>% 
-  left_join(landuse_classes %>% select(-Description), by = c('landuse' = 'ID')) %>% 
+  left_join(landuse_classes %>% select(-Description), by = c('landuse' = 'Class')) %>% 
   mutate(landuse = Class_merge)
   # mutate(landuse = recode(landuse, 
   #        "Pasture/Hay" = "Pasture/Crops", 
@@ -84,14 +84,14 @@ landuse_merge = landuse_df %>%
   # group_by(landuse) 
 
 landuse_background = landuse_background %>% 
-  left_join(landuse_classes %>% select(-Description), by = c('landuse' = 'ID')) %>% 
+  left_join(landuse_classes %>% select(-Description), by = c('landuse' = 'Class')) %>% 
   mutate(landuse = Class_merge)
 
 # Met station location
 metstation = st_as_sf(data.frame(lon = -89.482, lat = 43.060), coords = c("lon", "lat"), crs = 4326)
 
 
-ggplot() +
+wingra.map = ggplot() +
   geom_raster(data = landuse_background, 
               aes(x = x, y = y, fill = factor(landuse)), alpha = 0.1) +
   geom_raster(data = landuse_merge, 
@@ -107,13 +107,14 @@ ggplot() +
   coord_sf(expand = FALSE) +
   annotation_scale(location = "bl", width_hint = 0.25, line_width = 0.5) +  # Adds scale bar
   theme_bw(base_size = 10) +
+  ylab("") +
   theme(legend.text = element_text(size = 7),
         legend.title = element_text(size = 7),
         legend.key.height = unit(0.4,'cm'),
         # legend.position = 'bottom',
-        axis.title = element_blank())
+        axis.title.x = element_blank())
 
-ggsave('figures/Figure_map.png', width = 6, height = 2.5, dpi = 500)
+ggsave(plot = wingra.map, 'figures/Figure_map.png', width = 6, height = 2.5, dpi = 500)
 
 
 # Land use stats 

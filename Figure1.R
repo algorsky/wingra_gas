@@ -2,6 +2,7 @@ library(tidyverse)
 library(patchwork)
 #################### Figure 1 ####################
 source('0_maps.R')
+source('0_WingraLanduseMap.R')
 
 bathy_map <- ggplot() +
   geom_sf(data = wingra, color = 'grey99') +  
@@ -42,7 +43,8 @@ macrophyte_map <- ggplot() +
   scale_y_continuous(breaks = c(43.05, 43.054, 43.058)) +
   scale_x_continuous(breaks = c(-89.43, -89.42, -89.41))+
   # guides(color = guide_legend(override.aes = list(size = 2), nrow = 1, byrow = TRUE))+
-  theme_bw(base_size = 9)+
+  theme_bw(base_size = 9) +
+  ylab("") +
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
@@ -56,23 +58,37 @@ macrophyte_map <- ggplot() +
     legend.box.spacing = unit(0, "pt"),
     legend.margin = margin(0,0,0,0),
     legend.box.margin = margin(-4,0,0,0),
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank()
+    axis.title.x = element_blank()
     
   )+
   ggspatial::annotation_scale( bar_cols = c("grey", "white"),  location = "br")
 
 
-# (bathy_map + macrophyte_map)  +
-#   plot_annotation(tag_levels = 'a', tag_prefix = "(",tag_suffix = ")")
+# plot_grid(
+#  bathy_map + theme(plot.tag = element_text(size = 8)),
+#   macrophyte_map + theme(plot.tag = element_text(size = 8)),
+#   labels = c("(a)", "(b)"),
+#   label_size = 9,
+#   label_fontface = "plain",
+#   ncol = 2
+# )
 
 plot_grid(
-  bathy_map + theme(plot.tag = element_text(size = 8)),
-  macrophyte_map + theme(plot.tag = element_text(size = 8)),
-  labels = c("(a)", "(b)"),
-  label_size = 9,
+  wingra.map,
+  plot_grid(
+    bathy_map,
+    macrophyte_map,
+    labels = c("(b)", "(c)"),
+    label_fontface = "plain",
+    label_size = 8,
+    ncol = 2,
+    align = "h"
+  ),
+  labels = c("(a)", ""),
   label_fontface = "plain",
-  ncol = 2
+  label_size = 8,
+  ncol = 1,
+  rel_heights = c(1, 1)
 )
 
-ggsave('figures/Figure1.png',width = 6,height = 2.5,units = 'in', dpi = 500, bg = 'white')
+ggsave('figures/Figure1.png', width = 6, height = 5, units = 'in', dpi = 500, bg = 'white')
