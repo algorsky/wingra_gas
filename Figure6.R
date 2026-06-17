@@ -2,19 +2,19 @@
 source('0_PolygonsVoronoi.R')
 
 # Full plot of polygons
-polygon_plot<-ggplot() +
+polygon_plot <- ggplot() +
   geom_sf(data = filter(lake_macrophytes, rake < 10), aes(color = as.factor(rake), 
                                                           shape = as.factor(rake), fill = as.factor(rake), size = as.factor(rake)), stroke = 1.1) +
-  geom_sf(data = sites_sf, color = 'black', fill = "yellow", size = 2, shape = 24, stroke = 1.2)+
-  geom_sf(data = cluster_polygons, alpha = 0.2, linewidth = 1) +
-  scale_color_manual(values = c("lightgray",'#c2e699',"#78c679",  "#006837", "gray77"),labels = c("0", "1", "2", "3", "Not sampled"),  name = "", guide = guide_legend(title.position = "top")) +
+  geom_sf(data = sites_sf, color = 'black', fill = "yellow", size = 1.5, shape = 24, stroke = 0.5)+
+  geom_sf(data = cluster_polygons, alpha = 0.2, linewidth = 0.5) +
+  scale_color_manual(valu                                                                  es = c("lightgray",'#c2e699',"#78c679",  "#006837", "gray77"),labels = c("0", "1", "2", "3", "Not sampled"),  name = "", guide = guide_legend(title.position = "top")) +
   scale_fill_manual(values = c("lightgray",'#c2e699',"#78c679",  "#006837", "gray77"),labels = c("0", "1", "2", "3", "Not sampled"), name = "", guide = guide_legend(title.position = "top")) +
   scale_shape_manual(values = c(19, 19, 19, 19, 4), labels = c("0", "1", "2", "3", "Not sampled"), name = "", guide = guide_legend(title.position = "top")) +
-  scale_size_manual(values = c(2,2,2,2, 2), labels = c("0", "1", "2", "3", "Not sampled"), name = "", guide = guide_legend(title.position = "top"))+
+  scale_size_manual(values = c(0.2,0.2,0.2,0.2,0.2), labels = c("0", "1", "2", "3", "Not sampled"), name = "", guide = guide_legend(title.position = "top"))+
   # scale_y_continuous(breaks = c(43.05, 43.08)) +
   scale_x_continuous(breaks = c(-89.43, -89.42, -89.41))+
   guides(color = guide_legend(override.aes = list(size = 5), title.position = "top", nrow = 1, byrow = TRUE))+
-  theme_bw(base_size = 11)+
+  theme_bw(base_size = 9)+
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
@@ -22,22 +22,23 @@ polygon_plot<-ggplot() +
     legend.title = element_text(size=12),
     legend.text = element_text(size=12),
     legend.direction="horizontal"
-  )+
-  ggspatial::annotation_scale( bar_cols = c("grey", "white"),  location = "br")
+  ) +
+  ggspatial::annotation_scale( bar_cols = c("grey", "white"),  location = "br", size = )
 
 macrophyte<- read_csv("data/map/crosswalk_biomass.csv")
 co2_dissolved<- read_csv("data/co2_dissolved_use.csv")|>
   left_join(macrophyte, by = c("site"))
 # 13 days of freeze in December (13 + DOY = Days since Ice-On)
-co2_winter<- co2_dissolved%>%
+co2_winter <- co2_dissolved%>%
   filter(season == "ice" | date == as.Date("2023-03-23"))%>%
   mutate(doy = yday(date))%>%
   mutate(days_ice = 13 + doy)%>%
   mutate(mM = CO2_mean/1000)%>%
   mutate(CO2_max = CO2_mean + CO2_sd)
-co2_winter_plot<-ggplot()+
+
+co2_winter_plot <- ggplot()+
   geom_smooth(data = filter(co2_winter, season == "ice"), aes(x = days_ice, y = CO2_mean, group = site, color = as.factor(biomass)), method = "lm", se = F)+
-  geom_vline(xintercept = 91, linetype = "dashed", size = 1.4)+
+  geom_vline(xintercept = 91, linetype = "dashed", linewidth = 1.4)+
   geom_segment(aes(x = 61, xend = 91, y = -2.36 + 0.31*61, yend = -2.36 + 0.31*91), linetype ="dashed", color = "#F7FCF5")+
   geom_segment(aes(x = 61, xend = 91, y = 0.01 + 0.57*61, yend = 0.01 + 0.57*91), linetype ="dashed", color = "#A1D99B")+
   geom_segment(aes(x = 61, xend = 91, y = -8.68 + 0.53*61, yend = -8.68 + 0.53*91), linetype ="dashed", color = "#C7E9C0")+
@@ -54,9 +55,11 @@ co2_winter_plot<-ggplot()+
   scale_color_brewer(palette = "Greens")+
   scale_fill_brewer(palette = "Greens")+
   ylab(expression(paste("Surface C", O[2], " (", µ,"mol ", L^-1,")")))+
-  theme_bw(base_size = 14)+
+  theme_bw(base_size = 9)+
   theme(legend.position = 'none')
 
-polygon_plot+co2_winter_plot+ plot_annotation(tag_levels = 'a', tag_prefix = "(", tag_suffix = ")") 
+polygon_plot + co2_winter_plot + 
+  plot_annotation(tag_levels = 'a', tag_prefix = "(", tag_suffix = ")") &
+  theme(plot.tag = element_text(size = 9)) 
 
-ggsave(filename = 'figures/Figure6.png',width = 12,height = 5.5,units = 'in')
+ggsave(filename = 'figures/Figure6.png', width = 6, height = 4, units = 'in', dpi = 500)

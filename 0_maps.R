@@ -3,7 +3,7 @@ library(sf)
 
 #Load in data
 #wingra shapefile
-wingra = st_read('data/map/yld_study_lakes.shp')|>
+wingra = st_read('data/gis/YaharaLakes/yld_study_lakes.shp')|>
   filter(LAKEID == "WI")
 #Use the dnr depth from macrophyte survey to transform tprs data
 dnr_depth <- read_csv('data/map/depth_dnr.csv')|>
@@ -26,8 +26,9 @@ tprs_sf <- st_set_crs(tprs_sf, st_crs(wingra))
 ## Sites
 sites = read_csv('data/map/sites.csv') 
 crosswalk<- read_csv("data/map/crosswalk_biomass.csv")
-sites_biomass<- sites%>%
-  left_join(crosswalk, by = c("Site" = "site"))
+sites_biomass<- sites %>%
+  left_join(crosswalk, by = c("Site" = "site", 'latitude', 'longitude'))
+
 sites_sf = st_as_sf(sites_biomass, coords = c("longitude", "latitude"), crs = 4326, agr = "constant")
 
 #Rake Years

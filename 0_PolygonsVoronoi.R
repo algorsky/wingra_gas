@@ -7,7 +7,7 @@ library(tidyverse)
 library(concaveman)  # For concave hulls
 
 # Load Lake Wingra shapefile
-lake_outline = st_read('data/map/yld_study_lakes.shp') %>% 
+lake_outline = st_read('data/gis/YaharaLakes/yld_study_lakes.shp') %>% 
   filter(LAKEID == "WI")
 
 # Load sites 
