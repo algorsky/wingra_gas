@@ -25,9 +25,9 @@ tprs_sf <- st_set_crs(tprs_sf, st_crs(wingra))
 
 ## Sites
 sites = read_csv('data/map/sites.csv') 
-crosswalk<- read_csv("data/map/crosswalk_biomass.csv")
-sites_biomass<- sites %>%
-  left_join(crosswalk, by = c("Site" = "site", 'latitude', 'longitude'))
+crosswalk <- read_csv("data/map/crosswalk_biomass.csv")
+sites_biomass <- sites %>%
+  left_join(crosswalk |> select(-latitude, -longitude, -biomass), by = c("Site" = "site"))
 
 sites_sf = st_as_sf(sites_biomass, coords = c("longitude", "latitude"), crs = 4326, agr = "constant")
 
