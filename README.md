@@ -22,11 +22,10 @@ This project investigates the spatial and temporal variability of carbon dioxide
 *   `0_maps.R` & `0_WingraLanduseMap.R`: Generates basic site maps and land use contextual maps.
 *   `0_PolygonsVoronoi.R`: Generates Voronoi polygons for spatial weighting.
 *   `1_Upscaling.R` & `1_UpscalingWinter.R`: Scales point measurements up to whole-lake estimates for open water and winter periods.
-*   `2_FLAMe.R` & `2_FLAMe_CO2_gam.R`: Processes and interpolates high-resolution spatial data from the FLAMe (Fast Limnology Automated Measurements) platform. The GAM script uses 2D thin-plate splines for optimal spatial interpolation of surface CO₂ concentrations.
 
 ### Manuscript Figures
 
-The scripts numbered `Figure1.R` through `Figure6.R` correspond directly to the figures in the manuscript.
+The scripts numbered `Figure1.R` through `Figure7.R` correspond directly to the figures in the manuscript.
 
 ### Directories
 
@@ -40,8 +39,7 @@ The analysis is performed in R. Key packages required include:
 *   `tidyverse` (data manipulation and plotting)
 *   `sf`, `terra`, `raster`, `sp` (spatial data handling and GIS)
 *   `mgcv` (Generalized Additive Models for spatial interpolation)
-*   `viridis` (color palettes for mapping)
 
 ## License
 
-*	This information is released under the Creative Commons license - Attribution - CC BY (https://creativecommons.org/licenses/by/4.0/). The consumer of these data ("Data User" herein) is required to cite it appropriately in any publication that results from its use. The Data User should realize that these data may be actively used by others for ongoing research and that coordination may be necessary to prevent duplicate publication. The Data User is urged to contact the authors of these data if any questions about methodology or results occur. Where appropriate, the Data User is encouraged to consider collaboration or co-authorship with the authors. The Data User should realize that misinterpretation of data may occur if used out of context of the original study. While substantial efforts are made to ensure the accuracy of data and associated documentation, complete accuracy of data sets cannot be guaranteed. All data are made available "as is." The Data User should be aware, however, that data are updated periodically and it is the responsibility of the Data User to check for new versions of the data. The data authors and the repository where these data were obtained shall not be liable for damages resulting from any use or misinterpretation of the data. Thank you.*
+This information is released under the Creative Commons license - Attribution - CC BY (https://creativecommons.org/licenses/by/4.0/). The consumer of these data ("Data User" herein) is required to cite it appropriately in any publication that results from its use. The Data User should realize that these data may be actively used by others for ongoing research and that coordination may be necessary to prevent duplicate publication. The Data User is urged to contact the authors of these data if any questions about methodology or results occur. Where appropriate, the Data User is encouraged to consider collaboration or co-authorship with the authors. The Data User should realize that misinterpretation of data may occur if used out of context of the original study. While substantial efforts are made to ensure the accuracy of data and associated documentation, complete accuracy of data sets cannot be guaranteed. All data are made available "as is." The Data User should be aware, however, that data are updated periodically and it is the responsibility of the Data User to check for new versions of the data. The data authors and the repository where these data were obtained shall not be liable for damages resulting from any use or misinterpretation of the data. Thank you.
