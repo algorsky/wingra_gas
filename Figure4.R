@@ -1,22 +1,18 @@
-library(tidyverse)
-library(patchwork)
+#################### Figure 3 ####################
+source('0_diffusive.R')
 
-macrophyte<- read_csv("data/map/crosswalk_biomass.csv")
-co2_dissolved<- read_csv("data/co2_dissolved_use.csv")|>
-  left_join(macrophyte, by = c("site"))
-#Carbon dioxide
-ggplot()+
-  geom_rect(aes(xmin = as.Date("2022-12-18"), xmax = as.Date("2023-03-20"), ymin = -Inf, ymax = Inf), fill = "gray", alpha = 0.3)+
-  geom_line(data = co2_dissolved, aes(x = date, y = CO2_mean, color = as.factor(biomass)), show.legend = FALSE)+
-  geom_line(data = co2_dissolved, aes(x = date, y = total_mean_co2), linetype = "dashed", alpha = 0.7)+
-  geom_point(data = co2_dissolved, aes(x = date, y = CO2_mean, fill = as.factor(biomass)), 
-             shape = 21, size = 2, stroke = 0.2, show.legend = FALSE)+
+ggplot(df_figure)+
+  geom_hline(yintercept = 0, linetype = "dashed")+
+  geom_boxplot(aes(x = Site, y = co2_mean*1000*24, fill = as.factor(biomass)), linewidth = 0.2)+
+  ylab(((expression(paste("C", O[2], " (mmol ", m^-2, d^-1,")")))))+
   scale_fill_brewer(palette = "Greens")+
-  scale_color_brewer(palette = "Greens")+
-  ylab(expression(paste('Dissolved Carbon Dioxide (',mu,'M)')))+
+  # scale_fill_manual(values =c("#009E73","#D55E00", "#CC79A7"), labels = c("Summer (n = 8)",
+  #  "Fall (n = 4)",
+  #  "Spring (n = 4)"))+
   xlab("")+
-  theme_bw(base_size = 9)
-
-ggsave(filename = 'figures/Figure4.png',width = 6,height = 3,units = 'in', dpi = 500)
- 
-
+  theme_bw(base_size = 9)+
+  facet_wrap(~season_n)+
+  # guides(fill = guide_legend(override.aes = list(lwd=1)))+
+  theme(legend.position = "none" ,
+        axis.text.x=element_text(angle=45, hjust=1))
+ggsave('figures/Figure4.png', width = 6, height = 3, units = 'in', dpi = 500)

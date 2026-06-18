@@ -76,9 +76,9 @@ co2_vars <- intersect(
 co2_labels <- list(
   CO2Sat     = expression(paste("CO"[2], " saturation-raw (%)")),
   CO2Sat_tau = expression(paste("CO"[2], " saturation-tau (%)")),
-  CO2uM      = expression(paste("CO"[2], "-raw (", mu, "M)")),
-  CO2uM_tau  = expression(paste("CO"[2], "(", mu, "M)")),
-  pH_hyd = "pH",
+  CO2uM      = expression(paste("CO"[2], "(", mu, "M)")),
+  CO2uM_tau  = expression(paste("CO"[2], "-tau(", mu, "M)")),
+  pH = "pH",
   pH_tau = "pH"
 )
 
@@ -212,7 +212,7 @@ for (var in co2_vars) {
 # ============================================================
 
 manuscript.plots = list()
-for (var in c('pH_tau', 'CO2uM_tau')) {
+for (var in c('pH', 'CO2uM')) {
 
   r_plot <- gam_rasters[[var]]
   label_i <- co2_labels[[var]]
@@ -231,6 +231,7 @@ for (var in c('pH_tau', 'CO2uM_tau')) {
     geom_raster(aes(x = x, y = y, fill = value)) +
     geom_sf(data = outline_predict, fill = NA, color = "black",
             linewidth = 0.6, inherit.aes = FALSE) +
+    # geom_sf(data = data_sf, size = 0.01, shape = 20, alpha = 0.4, col = 'grey50') +
     coord_sf(crs = 32616, expand = FALSE) +
     labs(fill = label_i) +
     scale_fill_gradientn(colors = color.palette.flame(11)) +
