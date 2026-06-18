@@ -1,7 +1,5 @@
 # ============================================================
 # 2D GAM (Thin Plate Spline) - CO2 FLAMe - Lake Wingra
-# mgcv::gam() with s(x, y, bs = "tp")
-#
 # ============================================================
 
 library(sf)
@@ -16,7 +14,7 @@ library(khroma)
 # 1. LAKE OUTLINE
 # ============================================================
 
-yahara  <- read_sf("data/FLAMe/yld_study_lakes.shp")
+yahara  <- read_sf("data/gis/YaharaLakes/yld_study_lakes.shp")
 CL      <- yahara %>% filter(LAKEID == "WI")
 outline <- st_transform(CL, crs = 32616)
 
@@ -47,7 +45,7 @@ names(grid_coords) <- c("x", "y")
 # 3. FLAME DATA
 # ============================================================
 
-data <- readRDS("data/FLAMe/ProcessedData/2022-06-29_LakeWingra_09_geoclean.rds")
+data <- readRDS("data/FLAMe/2022-06-29_LakeWingra_09_geoclean.rds")
 # Remove first 400 rows
 data <- spTransform(data, CRSobj = CRS(st_crs(outline)$proj4string)) [-(1:400), ]
 
