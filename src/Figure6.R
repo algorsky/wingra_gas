@@ -1,11 +1,11 @@
 library(tidyverse)
 source('src/0_diffusive.R')
 ph_dic = read_csv("data/temp_dic_ph.csv")|>
-  rename(temp = Temp_C)%>%
-  rename(ph = pH)%>%
+  rename(temp = Temp_C) %>%
+  rename(ph = pH) %>%
   dplyr::select(sampledate, site, temp, ph, dic)
 data <- df %>%
-  left_join(crosswalk, by = c("Site"))%>%
+  left_join(crosswalk, by = c("Site")) %>%
   left_join(ph_dic, by = c("site", "Date" = "sampledate"))
 
 
