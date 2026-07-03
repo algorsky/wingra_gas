@@ -13,11 +13,11 @@ lakewingra = st_read('data/gis/YaharaLakes/YaharaLakes_DaneCty.shp') %>%
 bathy = st_read('data/gis/Wingra/wingra-contours-all.shp')
 bathy <- st_set_crs(bathy, 3071)
 
-# Ran this and saved output 
+# Ran this once and saved output; nlcd.2021 below reloads the cached GeoTIFF instead
 # library(FedData)
 # # # Load NCLD data using FedData (this is just for legend colors)
-nlcd <- get_nlcd(template = wingraWS,
-                 label = "Wingra", year = 2021, dataset = "landcover")
+# nlcd <- get_nlcd(template = wingraWS,
+#                  label = "Wingra", year = 2021, dataset = "landcover")
 # # Plot with terra::plot
 # terra::plot(nlcd)
 # # Save the raster to a GeoTIFF
@@ -69,7 +69,7 @@ palette_merge["Shrub/Grassland"] = '#a6c7a5'
 
 # Merge landuse
 landuse_merge = landuse_df %>% 
-  left_join(landuse_classes %>% select(-Description), by = c('landuse' = 'Class')) %>% 
+  left_join(landuse_classes %>% dplyr::select(-Description), by = c('landuse' = 'Class')) %>% 
   mutate(landuse = Class_merge)
   # mutate(landuse = recode(landuse, 
   #        "Pasture/Hay" = "Pasture/Crops", 
@@ -85,7 +85,7 @@ landuse_merge = landuse_df %>%
   # group_by(landuse) 
 
 landuse_background = landuse_background %>% 
-  left_join(landuse_classes %>% select(-Description), by = c('landuse' = 'Class')) %>% 
+  left_join(landuse_classes %>% dplyr::select(-Description), by = c('landuse' = 'Class')) %>% 
   mutate(landuse = Class_merge)
 
 # Met station location

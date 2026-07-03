@@ -9,6 +9,7 @@ library(terra)
 library(mgcv)          # gam() + thin plate spline
 library(tidyverse)
 library(khroma)
+library(cowplot)
 
 # ============================================================
 # 1. LAKE OUTLINE
@@ -210,7 +211,7 @@ for (var in co2_vars) {
 # ============================================================
 site.numbers = read_csv('data/map/sites.csv') 
 crosswalk <- read_csv("data/map/crosswalk_biomass.csv")
-sites_biomass <- sites %>%
+sites_biomass <- site.numbers %>%
   left_join(crosswalk |> dplyr::select(-latitude, -longitude, -biomass), by = c("Site" = "site"))
 site.numbers_sf = st_as_sf(sites_biomass, coords = c("longitude", "latitude"), crs = 4326, agr = "constant")
 

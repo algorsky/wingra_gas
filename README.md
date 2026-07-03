@@ -4,7 +4,7 @@ This repository contains the data and code associated with the manuscript:
 
 **Littoral macrophytes drive large spatial and temporal variability of carbon dioxide flux in a shallow hard-water lake**
 
-**Authors:** Gorsky, A.L., M.E. Perga, D.K. Szydlowski, E.H. Stanley, and H.A. Dugan
+**Authors:** Gorsky, A.L., D.K. Szydlowski, M.E. Perga, E.H. Stanley, and H.A. Dugan
 
 **Target Journal:** Limnology and Oceanography
 
@@ -26,6 +26,8 @@ This project investigates the spatial and temporal variability of carbon dioxide
 ### Manuscript Figures
 
 The scripts numbered `Figure1.R` through `Figure7.R` correspond directly to the figures in the manuscript.
+
+To regenerate all figures at once, run `RunAllFigures.R` from the project root (e.g. `Rscript RunAllFigures.R`). It runs each `Figure1.R`–`Figure7.R` script in its own clean R session and stops with an error message identifying which script failed, if any.
 
 ### Directories
 
