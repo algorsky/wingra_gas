@@ -1,15 +1,19 @@
 library(tidyverse)
 library(patchwork)
+library(cowplot)
+library(khroma)
 #################### Figure 1 ####################
-source('0_maps.R')
-source('0_WingraLanduseMap.R')
+source('src/0_maps.R')
+source('src/0_WingraLanduseMap.R')
 
 bathy_map <- ggplot() +
   geom_sf(data = wingra, color = 'grey99') +  
   geom_sf(data = tprs_sf, aes(color = depth), size = 3) +  # Plot depth using color
-  shadowtext::geom_shadowtext(data = sites_sf, aes(st_coordinates(geometry)[,1], y = st_coordinates(geometry)[,2], 
-                                                   label = rating), color = "white", bg.color = "black", size = 3) +
-  scale_color_viridis_c(name = "Depth (m)", option = "D") +  # Use viridis color scale
+  # shadowtext::geom_shadowtext(data = sites_sf, aes(st_coordinates(geometry)[,1], y = st_coordinates(geometry)[,2], 
+  #                                                  label = rating), color = "white", bg.color = "black", size = 3) +
+  geom_text(data = sites_sf, aes(st_coordinates(geometry)[,1], y = st_coordinates(geometry)[,2], 
+                                                   label = rating), color = "white", size = 3) +
+  scale_colour_oslo(reverse = TRUE, name = "Depth (m)") +
   xlab("")+ylab("")+
   scale_y_continuous(breaks = c(43.05, 43.054, 43.058)) +
   scale_x_continuous(breaks = c(-89.43, -89.42, -89.41))+
@@ -29,7 +33,8 @@ bathy_map <- ggplot() +
     legend.margin = margin(0,0,0,0),
     legend.box.margin = margin(-4,0,0,0)
   )+
-  ggspatial::annotation_scale( bar_cols = c("grey", "white"),  location = "br", text_cex = 0.5, pad_y = unit(0.15, "cm"))
+  ggspatial::annotation_scale(bar_cols = c("grey", "white"),  
+   location = "br", text_cex = 0.5, pad_y = unit(0.15, "cm")); bathy_map
 
 macrophyte_map <- ggplot() +
   # geom_sf(data = wingra, color = 'black', lwd = 2) +

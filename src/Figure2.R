@@ -1,5 +1,5 @@
 ################################# Calculate bicarbonate #################################
-source('0_alkalinity.R')
+source('src/0_alkalinity.R')
 
 ggplot(filter(alk, site != 6 & sampledate != as.Date("2022-07-25"))) +
   annotate("rect",

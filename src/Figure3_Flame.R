@@ -151,63 +151,69 @@ for (var in co2_vars) {
 # ============================================================
 # 7. PLOT AND SAVE ALL FIGURES
 # ============================================================
-
-dir.create("figures/FLAMe_Maps_gam", showWarnings = FALSE)
-
-for (var in co2_vars) {
-
-  r_plot <- gam_rasters[[var]]
-  if (is.null(r_plot)) next
-
-  label_i <- co2_labels[[var]]
-
-  plot_df        <- as.data.frame(r_plot, xy = TRUE)
-  names(plot_df) <- c("x", "y", "value")
-  plot_df        <- plot_df[!is.na(plot_df$value), ]
-
-  g <- ggplot(plot_df) +
-    theme_bw() +
-    theme(
-      panel.grid       = element_blank(),
-      panel.background = element_rect(fill = "gray85"),
-      axis.title       = element_blank()
-    ) +
-    geom_raster(aes(x = x, y = y, fill = value)) +
-    geom_sf(data = outline_predict, fill = NA, color = "black",
-            linewidth = 0.6, inherit.aes = FALSE) +
-    coord_sf(crs = 32616, expand = FALSE) +
-    labs(fill = label_i) +
-    scale_fill_gradientn(colors = color.palette.flame(11)) +
-    theme(
-      legend.position       = c(0.01, 0.99),
-      legend.justification  = c(0, 1),
-      legend.box.background = element_blank(),
-      legend.background     = element_blank(),
-      legend.text           = element_text(size = 10),
-      legend.title          = element_text(size = 10)
-    ) +
-    guides(fill = guide_colorbar(
-      direction      = "horizontal",
-      title.position = "top",
-      label.position = "bottom",
-      title.hjust    = 0.5,
-      barwidth       = unit(1.8, "in"),
-      barheight      = unit(0.2, "in"),
-      frame.colour   = "black"
-    ))
-
-  print(g)
-
-  ggsave(
-    filename = file.path("figures/FLAMe_Maps_gam", paste0(var, "_gam.png")),
-    plot     = g, dpi = 400, width = 6, height = 6, units = "in"
-  )
-  cat("Saved:", var, "\n")
-}
+# 
+# dir.create("figures/FLAMe_Maps_gam", showWarnings = FALSE)
+# 
+# for (var in co2_vars) {
+# 
+#   r_plot <- gam_rasters[[var]]
+#   if (is.null(r_plot)) next
+# 
+#   label_i <- co2_labels[[var]]
+# 
+#   plot_df        <- as.data.frame(r_plot, xy = TRUE)
+#   names(plot_df) <- c("x", "y", "value")
+#   plot_df        <- plot_df[!is.na(plot_df$value), ]
+# 
+#   g <- ggplot(plot_df) +
+#     theme_bw() +
+#     theme(
+#       panel.grid       = element_blank(),
+#       panel.background = element_rect(fill = "gray85"),
+#       axis.title       = element_blank()
+#     ) +
+#     geom_raster(aes(x = x, y = y, fill = value)) +
+#     geom_sf(data = outline_predict, fill = NA, color = "black",
+#             linewidth = 0.6, inherit.aes = FALSE) +
+#     coord_sf(crs = 32616, expand = FALSE) +
+#     labs(fill = label_i) +
+#     scale_fill_gradientn(colors = color.palette.flame(11)) +
+#     theme(
+#       legend.position       = c(0.01, 0.99),
+#       legend.justification  = c(0, 1),
+#       legend.box.background = element_blank(),
+#       legend.background     = element_blank(),
+#       legend.text           = element_text(size = 10),
+#       legend.title          = element_text(size = 10)
+#     ) +
+#     guides(fill = guide_colorbar(
+#       direction      = "horizontal",
+#       title.position = "top",
+#       label.position = "bottom",
+#       title.hjust    = 0.5,
+#       barwidth       = unit(1.8, "in"),
+#       barheight      = unit(0.2, "in"),
+#       frame.colour   = "black"
+#     ))
+# 
+#   print(g)
+# 
+#   ggsave(
+#     filename = file.path("figures/FLAMe_Maps_gam", paste0(var, "_gam.png")),
+#     plot     = g, dpi = 400, width = 6, height = 6, units = "in"
+#   )
+#   cat("Saved:", var, "\n")
+# }
 
 # ============================================================
 # 7. PLOT AND SAVE MANUSCRIPT FIGURE
 # ============================================================
+site.numbers = read_csv('data/map/sites.csv') 
+crosswalk <- read_csv("data/map/crosswalk_biomass.csv")
+sites_biomass <- sites %>%
+  left_join(crosswalk |> dplyr::select(-latitude, -longitude, -biomass), by = c("Site" = "site"))
+site.numbers_sf = st_as_sf(sites_biomass, coords = c("longitude", "latitude"), crs = 4326, agr = "constant")
+
 
 manuscript.plots = list()
 for (var in c('pH', 'CO2uM')) {
@@ -230,6 +236,8 @@ for (var in c('pH', 'CO2uM')) {
     geom_sf(data = outline_predict, fill = NA, color = "black",
             linewidth = 0.6, inherit.aes = FALSE) +
     # geom_sf(data = data_sf, size = 0.01, shape = 20, alpha = 0.4, col = 'grey50') +
+    geom_text(data = site.numbers_sf, aes(st_coordinates(geometry)[,1], y = st_coordinates(geometry)[,2], 
+                                   label = rating), color = "black", size = 2) +
     coord_sf(crs = 32616, expand = FALSE) +
     labs(fill = label_i) +
     scale_fill_gradientn(colors = color.palette.flame(11)) +

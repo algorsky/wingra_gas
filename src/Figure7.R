@@ -1,13 +1,16 @@
 library(cowplot)
 ################################# Polygons #################################
-source('0_PolygonsVoronoi.R')
+source('src/0_PolygonsVoronoi.R')
 
 # Full plot of polygons
 polygon_plot <- ggplot() +
   geom_sf(data = filter(lake_macrophytes, rake < 10), aes(color = as.factor(rake), 
                                                           shape = as.factor(rake), fill = as.factor(rake), size = as.factor(rake)), stroke = 1.1) +
-  geom_sf(data = sites_sf, color = 'black', fill = "yellow", size = 1.5, shape = 24, stroke = 0.5)+
   geom_sf(data = cluster_polygons, alpha = 0.2, linewidth = 0.5) +
+  geom_sf(data = sites_sf, color = 'black', fill = "yellow", size = 2, shape = 22, stroke = 0.5) +
+  geom_text(data = sites_sf, aes(st_coordinates(geometry)[,1], y = st_coordinates(geometry)[,2], 
+       label = rating), color = "black", size = 2, fontface = 2) +
+  
   scale_color_manual(values = c("lightgray",'#c2e699',"#78c679",  "#006837", "gray77"),labels = c("0", "1", "2", "3", "Not sampled"),  name = "", guide = guide_legend(title.position = "top")) +
   scale_fill_manual(values = c("lightgray",'#c2e699',"#78c679",  "#006837", "gray77"),labels = c("0", "1", "2", "3", "Not sampled"), name = "", guide = guide_legend(title.position = "top")) +
   scale_shape_manual(values = c(19, 19, 19, 19, 4), labels = c("0", "1", "2", "3", "Not sampled"), name = "", guide = guide_legend(title.position = "top")) +
@@ -17,6 +20,7 @@ polygon_plot <- ggplot() +
   guides(color = guide_legend(override.aes = list(size = 2), title.position = "top", nrow = 1, byrow = TRUE))+
   theme_bw(base_size = 9)+
   theme(
+    axis.title = element_blank(),
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     legend.position = 'bottom',
@@ -29,7 +33,8 @@ polygon_plot <- ggplot() +
     legend.margin = margin(0,0,0,0),
     legend.box.margin = margin(-4,0,0,0)
   ) +
-  ggspatial::annotation_scale( bar_cols = c("grey", "white"),  location = "br", text_cex = 0.5, pad_y = unit(0.15, "cm"))
+  ggspatial::annotation_scale( bar_cols = c("grey", "white"), 
+                               location = "br", text_cex = 0.5, pad_y = unit(0.15, "cm")); polygon_plot
 
 macrophyte<- read_csv("data/map/crosswalk_biomass.csv")
 co2_dissolved<- read_csv("data/co2_dissolved_use.csv")|>

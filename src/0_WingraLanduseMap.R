@@ -16,24 +16,25 @@ bathy <- st_set_crs(bathy, 3071)
 # Ran this and saved output 
 # library(FedData)
 # # # Load NCLD data using FedData (this is just for legend colors)
-# nlcd <- get_nlcd(template = wingraWS,
-#                  label = "Wingra", year = 2019, dataset = "landcover")
+nlcd <- get_nlcd(template = wingraWS,
+                 label = "Wingra", year = 2021, dataset = "landcover")
 # # Plot with terra::plot
 # terra::plot(nlcd)
 # # Save the raster to a GeoTIFF
-# writeRaster(nlcd, "data/gis/nlcd_export.tif", overwrite = TRUE)
+# writeRaster(nlcd, "data/gis/NLCD/nlcd_export_2021.tif", overwrite = TRUE)
+nlcd.2021 <- rast("data/gis/NCLD/nlcd_export_2021.tif")
 # 
 # nlcd.2023 = terra::rast('data/gis/NCLD/Annual_NLCD_LndCov_2023_CU_C1V0_5yBUfLryZkDCeOYocVzN.tiff')
 # terra::plot(nlcd.2023)
-nlcd.2023 <- rast("data/gis/nlcd_export.tif")
+
 
 # Transform CRS
-wingraWS = st_transform(wingraWS, st_crs(nlcd.2023))
-lakewingra = st_transform(lakewingra, st_crs(nlcd.2023))
-bathy = st_transform(bathy, st_crs(nlcd.2023))
+wingraWS = st_transform(wingraWS, st_crs(nlcd.2021))
+lakewingra = st_transform(lakewingra, st_crs(nlcd.2021))
+bathy = st_transform(bathy, st_crs(nlcd.2021))
 
 # Crop raster and mask to watershed 
-cropped_landuse <- crop(nlcd.2023, wingraWS)
+cropped_landuse <- crop(nlcd.2021, wingraWS)
 masked_landuse <- mask(cropped_landuse, wingraWS)
 
 # Convert SpatRaster to Dataframe
@@ -44,8 +45,8 @@ landuse_background <- as.data.frame(cropped_landuse, xy = TRUE)  # Include x, y 
 colnames(landuse_background) <- c("x", "y", "landuse")  # Rename columns for clarity
 
 # extract colors
-landuse_classes <- cats(nlcd)[[1]]  # Get category names
-landuse_colors <- terra::coltab(nlcd)  # Get associated colors
+landuse_classes <- terra::cats(nlcd.2021)[[1]]  # Get category names
+landuse_colors <- terra::coltab(nlcd.2021)  # Get associated colors
 
 # Merge some classes in the palette
 landuse_classes = landuse_classes %>% 
