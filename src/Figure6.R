@@ -1,9 +1,11 @@
 library(tidyverse)
 source('src/0_diffusive.R')
-ph_dic = read_csv("data/temp_dic_ph.csv")|>
+
+ph_dic = read_csv("data/temp_dic_ph.csv") |>
   rename(temp = Temp_C) %>%
   rename(ph = pH) %>%
   dplyr::select(sampledate, site, temp, ph, dic)
+
 data <- df %>%
   left_join(crosswalk, by = c("Site")) %>%
   left_join(ph_dic, by = c("site", "Date" = "sampledate"))
@@ -42,6 +44,7 @@ p3 <- ggplot(filter(data, season == "Summer")) +
   xlab("Surface water pH") +
   theme_bw(base_size = 9) +
   theme(legend.position = 'none')
+
 #Linear model
 co2_pH_lm_summer <- lm(co2_mean ~ ph, data = filter(data, season == "Summer"))
 summary(co2_pH_lm_summer)

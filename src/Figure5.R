@@ -2,8 +2,9 @@ library(tidyverse)
 library(patchwork)
 
 macrophyte<- read_csv("data/map/crosswalk_biomass.csv")
-co2_dissolved<- read_csv("data/co2_dissolved_use.csv")|>
+co2_dissolved<- read_csv("data/co2_dissolved_use.csv") |>
   left_join(macrophyte, by = c("site"))
+
 #Carbon dioxide
 ggplot()+
   geom_rect(aes(xmin = as.Date("2022-12-18"), xmax = as.Date("2023-03-20"), ymin = -Inf, ymax = Inf), fill = "gray", alpha = 0.3)+
