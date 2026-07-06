@@ -66,6 +66,6 @@ ggplot(saturations_plot) +
   theme_bw(base_size = 9) +
   theme(legend.title = element_blank())
 
-ggsave(filename = 'supplementary/figures/FigureS5.png', width = 4 ,height = 2.5,units = 'in')
+ggsave(filename = 'figures_SI/FigureS5.png', width = 4 ,height = 2.5,units = 'in')
 
 

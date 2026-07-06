@@ -68,6 +68,6 @@ eurasian / coontail +
   plot_annotation(tag_levels = 'a', tag_prefix = "(", tag_suffix = ")") &
   theme(legend.position = 'bottom', plot.tag = element_text(size = 8))
 
-ggsave(filename = 'supplementary/figures/FigureS1.png',
+ggsave(filename = 'figures_SI/FigureS1.png',
        width = 6.5, height = 5, units = 'in', dpi = 500, bg = 'white')
 

@@ -83,5 +83,5 @@ tp_plot / tn_plot / chloro_plot +
         legend.margin = margin(2, 0, 0, 0),
         legend.box.margin = margin(-4, 0, 0, 0))
 
-ggsave(filename = 'supplementary/figures/FigureS2.png',
+ggsave(filename = 'figures_SI/FigureS2.png',
        width = 6.5, height = 7, units = 'in', dpi = 500)

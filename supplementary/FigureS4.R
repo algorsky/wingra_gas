@@ -27,4 +27,4 @@ ggplot(filter(profiles, !(Site == 4 & Depth > 0.9)&!(Site == 8 & Depth > 0.9))) 
         legend.margin = margin(0, 0, 0, 0),
         legend.box.margin = margin(0, 0, 0, 0))
 
-ggsave('supplementary/figures/FigureS4.png', width = 6.5, height = 6, dpi = 500)
+ggsave('figures_SI/FigureS4.png', width = 6.5, height = 6, dpi = 500)
