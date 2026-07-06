@@ -53,7 +53,7 @@ plot_rake_map <- function(species_col, title) {
       legend.text = element_text(size = 8),
       legend.direction = "horizontal",
       legend.margin = margin(0, 0, 0, 0),
-      legend.box.margin = margin(4, 0, 0, 0),
+      legend.box.margin = margin(0, 0, 0, 0),
       plot.title = element_text(size = 9, face = "bold")
     ) +
     ggspatial::annotation_scale(bar_cols = c("grey", "white"), location = "br", text_cex = 0.5, pad_y = unit(0.15, "cm"))
