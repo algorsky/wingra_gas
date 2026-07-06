@@ -2,74 +2,86 @@ library(tidyverse)
 library(lubridate)
 library(patchwork)
 
-#Load data 
-tntp      <- read_csv('supplementary/data/TNTP.csv')
-macrophyte<- read_csv("supplementary/data/sites.csv")
-chloro_all<- read_csv("supplementary/data/chlorophyll.csv")
-crosswalk <- read_csv("supplementary/data/crosswalk_biomass.csv")
+#Load data
+tntp <- read_csv('data/water_quality/TNTP.csv')
+chloro_all<- read_csv("data/water_quality/chlorophyll.csv")
 
-#Assign season and join nutrient + macrophyte data
+crosswalk <- read_csv("data/map/crosswalk_biomass.csv") %>%
+  mutate(
+    biomass_rake_fulness = case_when(
+      biomass < 1 ~ "0",
+      biomass < 30 ~ "1to29",
+      biomass < 80 ~ "30to79",
+      biomass >= 80 ~ "80plus"
+    ),
+    biomass_rake_fulness = factor(biomass_rake_fulness, levels = c("0", "1to29", "30to79", "80plus"))
+  )
+
+#Assign season and join nutrient + biomass data
 nutrients <- tntp %>%
-  left_join(macrophyte, by = c("Site")) %>%
-  mutate(season = ifelse(month(Date) < 3, "under-ice",
-                         ifelse(month(Date) > 2 & month(Date) < 6, "Spring",
-                                ifelse(month(Date) > 8, "Fall", "Summer")))) %>%
-  mutate(season = factor(season, levels = c("Summer", "Fall", "Spring", "under-ice")))
+  left_join(crosswalk, by = c("Site" = "site")) %>%
+  mutate(season = case_when(
+    month(Date) %in% 3:5   ~ "Spring", # March-May
+    month(Date) %in% 6:8   ~ "Summer", # June-August
+    month(Date) %in% 9:10  ~ "Fall",   # September-October
+    month(Date) %in% 1:2   ~ "Winter"  # January-February, under ice
+  )) %>%
+  mutate(season = factor(season, levels = c("Summer", "Fall", "Spring", "Winter")))
 
-#Summer TN/TP joined with biomass rating 
+#Summer TN/TP joined with biomass rating
 summer_tptn <- nutrients %>%
-  filter(season == "Summer") %>%
-  left_join(crosswalk, by = c("Site" = "site"))
+  filter(season == "Summer")
 
 #Summer chlorophyll joined with biomass rating
 chloro_summer <- chloro_all %>%
-  mutate(season = ifelse(month(date) < 3, "winter",
-                         ifelse(month(date) > 2 & month(date) < 6, "spring",
-                                ifelse(month(date) > 8, "fall", "summer")))) %>%
-  filter(season == "summer") %>%
+  mutate(season = case_when(
+    month(date) %in% 3:5   ~ "Spring", # March-May
+    month(date) %in% 6:8   ~ "Summer", # June-August
+    month(date) %in% 9:10  ~ "Fall",   # September-October
+    month(date) %in% 1:2   ~ "Winter"  # January-February, under ice
+  )) %>%
+  filter(season == "Summer") %>%
   left_join(crosswalk, by = c("site"))
 
-#Shared color palette (biomass rating gradient) 
-biomass_colors <- c("#F7FCF5", "#E5F5E0", "#C7E9C0", "#A1D99B",
-                             "#74C476", "#41AB5D", "#238B45", "#005A32")
-                             
 #TP plot
-tp_plot <- ggplot(summer_tptn, aes(x = as.factor(rating_site), fill = as.factor(biomass.x),
+tp_plot <- ggplot(summer_tptn, aes(x = rating_site, fill = biomass_rake_fulness,
                                    y = TP_ug_l / 1000, group = rating_site)) +
   geom_boxplot(outlier.shape = NA) +
-  geom_jitter(alpha = 0.5) +
-  scale_fill_manual(values = biomass_colors) +
-  ylab(expression(paste('Total Phosphorus (mg', 'L'^-1, ')'))) +
+  geom_jitter(alpha = 0.5, size = 0.8) +
+  scale_fill_brewer(palette = "Greens", name = "Biomass (g)", labels = c("0", "1-29", "30-79", "80+")) +
+  ylab(expression(paste('Total Phosphorus (mg ', 'L'^-1, ')'))) +
   xlab("") +
-  theme_bw(base_size = 14) +
-  theme(legend.position = "none")
+  theme_bw(base_size = 9)
 
-#TN plot 
-tn_plot <- ggplot(summer_tptn, aes(x = as.factor(rating_site), fill = as.factor(biomass.x),
+#TN plot
+tn_plot <- ggplot(summer_tptn, aes(x = rating_site, fill = biomass_rake_fulness,
                                    y = TN_ug_l / 1000, group = rating_site)) +
   geom_boxplot(outlier.shape = NA) +
-  geom_jitter(alpha = 0.5) +
-  scale_fill_manual(values = biomass_colors) +
+  geom_jitter(alpha = 0.5, size = 0.8) +
+  scale_fill_brewer(palette = "Greens", name = "Biomass (g)", labels = c("0", "1-29", "30-79", "80+")) +
   xlab("") +
-  ylab(expression(paste('Total Nitrogen (mg', 'L'^-1, ')'))) +
-  theme_bw(base_size = 14) +
-  theme(legend.position = "none")
+  ylab(expression(paste('Total Nitrogen (mg ', 'L'^-1, ')'))) +
+  theme_bw(base_size = 9)
 
 #Chlorophyll plot
-chloro_plot <- ggplot(chloro_summer, aes(x = as.factor(rating_site), fill = as.factor(rating),
-                                         y = chla_correct_ugl, group = rating)) +
+chloro_plot <- ggplot(chloro_summer, aes(x = rating_site, fill = biomass_rake_fulness,
+                                         y = chla_correct_ugl, group = rating_site)) +
   geom_boxplot(outlier.shape = NA) +
-  geom_jitter(alpha = 0.5) +
-  scale_fill_manual(values = biomass_colors) +
+  geom_jitter(alpha = 0.5, size = 0.8) +
+  scale_fill_brewer(palette = "Greens", name = "Biomass (g)", labels = c("0", "1-29", "30-79", "80+")) +
   xlab("") +
   ylab(expression(paste('Chlorophyll a (', mu, 'g ', 'L'^-1, ')'))) +
-  theme_bw(base_size = 14) +
-  theme(legend.position = "none")
+  theme_bw(base_size = 9)
 
 ## ---- Combine and save ----
 tp_plot / tn_plot / chloro_plot +
-  plot_annotation(tag_levels = 'a', tag_prefix = "(", tag_suffix = ")") +
-  plot_layout(guides = 'collect')
+  plot_layout(guides = 'collect') +
+  plot_annotation(tag_levels = 'a', tag_prefix = "(", tag_suffix = ")") &
+  theme(legend.position = "bottom",
+        plot.tag = element_text(size = 8),
+        legend.box.spacing = unit(0, "pt"),
+        legend.margin = margin(2, 0, 0, 0),
+        legend.box.margin = margin(-4, 0, 0, 0))
 
 ggsave(filename = 'supplementary/figures/FigureS2.png',
-       width = 7, height = 8, units = 'in')
+       width = 6.5, height = 7, units = 'in', dpi = 500)
