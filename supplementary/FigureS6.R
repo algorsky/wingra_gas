@@ -1,6 +1,6 @@
 library(tidyverse)
 
-ice<- read_csv('supplementary/data/ice.csv')|>
+ice <- read_csv('supplementary/data/ice.csv')|>
   rename(sample_date = sampledate)%>%
   dplyr::select(site, sample_date, avsnow, totice, whiteice, blackice,secchi)
 
@@ -32,4 +32,4 @@ ggplot(ice_stacked, aes(x = as.factor(sample_date), y = thickness, fill = icetyp
   geom_hline(yintercept = 0, , size = 0.3)+
   theme_bw()
 
-ggsave(filename = 'supplementary/figures/FigureS6.png',width = 8,height = 6,units = 'in')
+ggsave(filename = 'supplementary/figures/FigureS6.png', width = 6.5, height = 6, units = 'in')
