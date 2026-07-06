@@ -99,7 +99,7 @@ plot_grid(
   co2_winter_plot +
     theme(plot.tag = element_text(size = 8)),
   labels = c("(a)", "(b)"),
-  label_size = 9,
+  label_size = 8,
   label_fontface = "plain",
   ncol = 2
 )
