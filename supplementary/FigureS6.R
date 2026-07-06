@@ -22,14 +22,15 @@ ice_stacked <- ice_long %>%
   left_join(crosswalk, by = "site")
 
 ggplot(ice_stacked, aes(x = as.factor(sample_date), y = thickness, fill = icetype)) +
-  geom_bar(stat = "identity", width=0.5, size =0.2) +
-  facet_wrap(~rating_site) +
+  geom_bar(stat = "identity", width=  0.5, size = 0.2) +
+  facet_wrap(~rating_site, nrow = 2) +
   scale_y_continuous(labels = abs) +
   scale_fill_manual(values = c('#404040','#E0E0E0','lightblue3'), name = '') +
-  guides(fill = guide_legend(reverse=TRUE)) +
+  guides(fill = guide_legend(reverse = TRUE)) +
   labs(y = "Thickness (cm)") +
-  xlab("")+
-  geom_hline(yintercept = 0, , size = 0.3)+
-  theme_bw()
+  xlab("") +
+  geom_hline(yintercept = 0, size = 0.3) +
+  theme_bw(base_size = 9) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-ggsave(filename = 'supplementary/figures/FigureS6.png', width = 6.5, height = 6, units = 'in')
+ggsave(filename = 'supplementary/figures/FigureS6.png', width = 6.5, height = 4, units = 'in')
