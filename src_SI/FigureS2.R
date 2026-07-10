@@ -49,7 +49,7 @@ tp_plot <- ggplot(summer_tptn, aes(x = rating_site, fill = biomass_rake_fulness,
   geom_boxplot(outlier.shape = NA, linewidth = 0.2) +
   geom_jitter(alpha = 0.5, size = 0.8) +
   scale_fill_brewer(palette = "Greens", name = "Biomass (g)", labels = c("0", "1-29", "30-79", "80+")) +
-  ylab(expression(paste('Total Phosphorus (mg ', 'L'^-1, ')'))) +
+  ylab(expression(paste('TDP (mg ', 'L'^-1, ')'))) +
   xlab("") +
   theme_bw(base_size = 9)
 
@@ -60,7 +60,7 @@ tn_plot <- ggplot(summer_tptn, aes(x = rating_site, fill = biomass_rake_fulness,
   geom_jitter(alpha = 0.5, size = 0.8) +
   scale_fill_brewer(palette = "Greens", name = "Biomass (g)", labels = c("0", "1-29", "30-79", "80+")) +
   xlab("") +
-  ylab(expression(paste('Total Nitrogen (mg ', 'L'^-1, ')'))) +
+  ylab(expression(paste('TDN (mg ', 'L'^-1, ')'))) +
   theme_bw(base_size = 9)
 
 #Chlorophyll plot
