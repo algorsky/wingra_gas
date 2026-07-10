@@ -13,7 +13,9 @@ df <- read_csv("data/diffusive.csv") |>
   )) %>%
   # filter(Date != as.Date("2022-06-28")) %>%
   mutate(Site_num = gsub("_", " ", Site)) %>%
-  mutate(season = factor(season, levels = c("Summer", "Fall", "Spring", "Winter")))
+  mutate(season = factor(season, levels = c("Summer", "Fall", "Spring", "Winter"))) %>% 
+  mutate(co2_mean = co2_mean*1000*24)  # convert units of CO2 to mmol m-2 d-1
+
 
 #crosswalk
 crosswalk <- read_csv("data/map/crosswalk_biomass.csv")
@@ -116,7 +118,10 @@ make_plot <- function(df, letters_df, response, ylab, hline = FALSE) {
   p
 }
 
-co2_plot <- make_plot(plot_df, co2_letters, "co2_mean", expression(CO[2]), hline = TRUE)
+
+co2_plot <- make_plot(plot_df, co2_letters, "co2_mean",   expression(paste("C", O[2] , " Flux (mmol ", " ", m^-2, d^-1,")")))+
+  geom_hline(yintercept = 0, linetype = "dashed")
+
 ph_plot  <- make_plot(plot_df, ph_letters, "ph", "pH")
 
 combined_plot <- (co2_plot | ph_plot) +

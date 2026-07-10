@@ -28,7 +28,7 @@ p1 <- ggplot(data) +
   geom_point(aes(y = co2_mean * 1000 * 24, x = dic,  fill = (season)), size = 2, shape = 21, stroke = 0.2) +
   scale_fill_manual(values =c("#009E73","#D55E00", "#CC79A7")) +
   ylab(((expression(paste("C", O[2] , " Flux (mmol ", m^-2, d^-1,")"))))) +
-  xlab(((expression(paste("Surface water DIC", " (mg ","",, L^-1,")"))))) +
+  xlab(((expression(paste("Surface water DIC", " (mg ","", L^-1,")"))))) +
   theme_bw(base_size = 9) +
   theme(legend.title = element_blank(), legend.position = 'right')
 
@@ -50,7 +50,7 @@ summary(co2_pH_lm)
 
 p3 <- ggplot(filter(data, season == "Summer")) +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  geom_point(aes(y = co2_mean, x = ph,  fill = biomass_rake_fulness), size = 2, shape = 21, stroke = 0.2) +
+  geom_point(aes(y = co2_mean *1000 *24, x = ph,  fill = biomass_rake_fulness), size = 2, shape = 21, stroke = 0.2) +
   scale_fill_brewer(palette = "Greens", name = "Biomass (g)", labels = c("0", "1-29", "30-79", "80+")) +
   ylab(((expression(paste("C", O[2] , " Flux (mmol ", m^-2, d^-1,")"))))) +
   xlab("Surface water pH") +
