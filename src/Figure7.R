@@ -7,7 +7,7 @@ polygon_plot <- ggplot() +
   geom_sf(data = filter(lake_macrophytes, rake < 10), aes(color = as.factor(rake), 
                                                           shape = as.factor(rake), fill = as.factor(rake), size = as.factor(rake)), stroke = 1.1) +
   geom_sf(data = cluster_polygons, alpha = 0.2, linewidth = 0.5) +
-  geom_sf(data = sites_sf, color = 'black', fill = "yellow", size = 2.2, shape = 22, stroke = 0.5, alpha = 0.6) +
+  geom_sf(data = sites_sf, color = 'black', fill = "white", size = 2.4, shape = 22, stroke = 0.5, alpha = 0.8) +
   geom_text(data = sites_sf, aes(st_coordinates(geometry)[,1], y = st_coordinates(geometry)[,2], 
        label = rating), color = "black", size = 1.8, fontface = 1) +
   
