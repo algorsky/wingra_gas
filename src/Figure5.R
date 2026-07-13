@@ -41,3 +41,32 @@ ggplot() +
 ggsave(filename = 'figures/Figure5.png',width = 6,height = 3,units = 'in', dpi = 500)
  
 
+
+
+#### Compare under-ice CO2 by category using ANOVA ####
+
+# make seasonal categories
+co2_dissolved = co2_dissolved %>% 
+  mutate(season = case_when(
+    month(date) %in% 3:5   ~ "Spring", # March-May
+    month(date) %in% 6:8   ~ "Summer", # June-August
+    month(date) %in% 9:10  ~ "Fall",   # September-October
+    month(date) %in% 1:2   ~ "Winter"  # January-February, under ice
+  )) %>%
+  # filter(Date != as.Date("2022-06-28")) %>%
+  mutate(Site_num = gsub("_", " ", Site)) %>%
+  mutate(season = factor(season, levels = c("Summer", "Fall", "Spring", "Winter"))) 
+
+# quick boxplot to visually check the data
+ggplot(co2_dissolved %>% filter(season == "Winter"), aes(x = biomass_rake_fulness, y = CO2_mean))+
+  geom_boxplot()
+
+winter.co2 = co2_dissolved %>% 
+  filter(season == "Winter")
+
+response = "CO2_mean"
+
+# run an ANOVA for pCO2 across binned macrophyte biomass
+mod <- aov(as.formula(paste(response, "~ biomass_rake_fulness")), data = winter.co2)
+cld <- multcompLetters4(mod, TukeyHSD(mod))[["biomass_rake_fulness"]]
+data.frame(biomass_rake_fulness = names(cld$Letters), Letters = cld$Letters, row.names = NULL)
