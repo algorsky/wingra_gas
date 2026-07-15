@@ -28,6 +28,13 @@ nutrients <- tntp %>%
   )) %>%
   mutate(season = factor(season, levels = c("Summer", "Fall", "Spring", "Winter")))
 
+# Summarize unfiltered nutrients by season for results
+nutrients.mean = nutrients %>% 
+  group_by(season) %>% 
+  filter(Filtered == "UF") %>% 
+  summarize(mean.tp = mean(TP_ug_l, na.rm = TRUE),
+            mean.tn = mean(TN_ug_l, na.rm = TRUE))
+
 #Summer TN/TP joined with biomass rating
 summer_tptn <- nutrients %>%
   filter(season == "Summer")
@@ -44,23 +51,23 @@ chloro_summer <- chloro_all %>%
   left_join(crosswalk, by = c("site"))
 
 #TP plot
-tp_plot <- ggplot(summer_tptn, aes(x = rating_site, fill = biomass_rake_fulness,
+tp_plot <- ggplot(summer_tptn %>% filter(Filtered == "UF"), aes(x = rating_site, fill = biomass_rake_fulness,
                                    y = TP_ug_l / 1000, group = rating_site)) +
   geom_boxplot(outlier.shape = NA, linewidth = 0.2) +
   geom_jitter(alpha = 0.5, size = 0.8) +
   scale_fill_brewer(palette = "Greens", name = "Biomass (g)", labels = c("0", "1-29", "30-79", "80+")) +
-  ylab(expression(paste('TDP (mg ', 'L'^-1, ')'))) +
+  ylab(expression(paste('Total Phosphorus (mg ', 'L'^-1, ')'))) +
   xlab("") +
   theme_bw(base_size = 9)
 
 #TN plot
-tn_plot <- ggplot(summer_tptn, aes(x = rating_site, fill = biomass_rake_fulness,
+tn_plot <- ggplot(summer_tptn %>% filter(Filtered == "UF"), aes(x = rating_site, fill = biomass_rake_fulness,
                                    y = TN_ug_l / 1000, group = rating_site)) +
   geom_boxplot(outlier.shape = NA, linewidth = 0.2) +
   geom_jitter(alpha = 0.5, size = 0.8) +
   scale_fill_brewer(palette = "Greens", name = "Biomass (g)", labels = c("0", "1-29", "30-79", "80+")) +
   xlab("") +
-  ylab(expression(paste('TDN (mg ', 'L'^-1, ')'))) +
+  ylab(expression(paste('Total Nitrogen (mg ', 'L'^-1, ')'))) +
   theme_bw(base_size = 9)
 
 #Chlorophyll plot
