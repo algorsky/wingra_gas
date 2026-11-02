@@ -24,8 +24,7 @@ df = read_csv("data/temp_dic_ph.csv")|>
 #       output #  units. Default to "mg". Option = "mol"
 
 # CHEMICAL & THERMODYNAMIC COEFFICIENTS  
-#       K0     #  Henry's Law constant
-#       K1     #  first dissociation coefficient for H2CO3
+#       K1    #  first dissociation coefficient for H2CO3
 #       K2     #  second dissociation coefficient for H2CO3
 #       Kw     #  dissociation constant of water 
 
@@ -39,8 +38,8 @@ carbonate <- function(TEMP=16, DIC=2002, pH=8, output = "mg") {
   
   # all values of the solubilities and dissociation constants are temperature dependent. 
   # Carbonate equilibrium constants as functions of temp (K)
-  pK0 = -2622.38/TEMP - 0.0178471*TEMP + 15.5873 
-  
+  # Henry's Law constant (K0) is not needed: with DIC and pH both measured,
+  # speciation depends only on K1, K2 (and Kw for the OH- term)
   pK1 = 3404.71/TEMP + 0.032786*TEMP - 14.8435
   
   pK2 = 2902.39/TEMP + 0.02379*TEMP - 6.4980
@@ -52,7 +51,6 @@ carbonate <- function(TEMP=16, DIC=2002, pH=8, output = "mg") {
   Hplus = 10^(-pH)           
   OHneg = Kw/Hplus
   
-  K0 = 10^(-pK0)
   K1 = 10^(-pK1)
   K2 = 10^(-pK2)
   
