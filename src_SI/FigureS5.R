@@ -50,8 +50,7 @@ saturations_plot <- saturations %>%
     month(date) %in% 3:5   ~ "Spring", # March-May
     month(date) %in% 6:8   ~ "Summer", # June-August
     month(date) %in% 9:10  ~ "Fall",   # September-October
-    month(date) %in% 1:2   ~ "Under-ice"  # January-February, under ice
-  )) %>%
+    month(date) %in% 1:2   ~ "Under-ice")) %>%  # January-February, under ice
   mutate(season = factor(season, levels = c("Summer", "Fall", "Spring", "Under-ice")))
 
 

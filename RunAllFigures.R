@@ -9,8 +9,7 @@ figure_scripts <- c(
   "src/Figure4.R",
   "src/Figure5.R",
   "src/Figure6.R",
-  "src/Figure7.R"
-)
+  "src/Figure7.R")
 
 for (script in figure_scripts) {
   cat("\n==== Running", script, "====\n")

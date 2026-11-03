@@ -35,8 +35,7 @@ raster_layer      <- raster(r_template)
 watergrid_predict <- rasterToPoints(raster_layer, spatial = TRUE)
 watergrid_predict <- spTransform(
   watergrid_predict,
-  CRSobj = CRS(st_crs(outline_predict)$proj4string)
-)
+  CRSobj = CRS(st_crs(outline_predict)$proj4string))
 
 # Grid as data frame with centred coordinates
 grid_coords     <- as.data.frame(coordinates(watergrid_predict))
@@ -69,8 +68,7 @@ data_df        <- cbind(data_df, data_coords)
 
 co2_vars <- intersect(
   c("CO2Sat", "CO2Sat_tau", "CO2uM", "CO2uM_tau", "pH", "pH_tau"),
-  names(data_df)
-)
+  names(data_df))
 
 co2_labels <- list(
   CO2Sat     = expression(paste("CO"[2], " saturation-raw (%)")),
@@ -78,8 +76,7 @@ co2_labels <- list(
   CO2uM      = expression(paste("CO"[2], "(", mu, "M)")),
   CO2uM_tau  = expression(paste("CO"[2], "-tau(", mu, "M)")),
   pH = "pH",
-  pH_tau = "pH"
-)
+  pH_tau = "pH")
 
 # ============================================================
 # 5. COLOR PALETTE
@@ -87,8 +84,7 @@ co2_labels <- list(
 
 color.palette.flame <- colorRampPalette(
   khroma::colour("sunset")(11),
-  bias = 1
-)
+  bias = 1)
 
 # ============================================================
 # 6. GAM INTERPOLATION LOOP
@@ -125,10 +121,8 @@ for (var in co2_vars) {
     mgcv::gam(
       z ~ s(xc, yc, bs = "tp", k = 300),
       data   = df_var,
-      method = "REML"
-    ),
-    error = function(e) { cat("  GAM failed:", e$message, "\n"); NULL }
-  )
+      method = "REML"),
+    error = function(e) { cat("  GAM failed:", e$message, "\n"); NULL })
   if (is.null(fit)) next
 
   cat("  Smoothing parameter (sp):", round(fit$sp, 4), "\n")
@@ -231,8 +225,7 @@ for (var in c('pH', 'CO2uM')) {
     theme(
       panel.grid       = element_blank(),
       panel.background = element_rect(fill = "gray85"),
-      axis.title       = element_blank()
-    ) +
+      axis.title       = element_blank()) +
     geom_raster(aes(x = x, y = y, fill = value)) +
     geom_sf(data = outline_predict, fill = NA, color = "black",
             linewidth = 0.6, inherit.aes = FALSE) +
@@ -248,15 +241,13 @@ for (var in c('pH', 'CO2uM')) {
       legend.box.background = element_blank(),
       legend.background     = element_blank(),
       legend.text           = element_text(size = 8),
-      legend.title          = element_text(size = 8)
-    ) +
+      legend.title          = element_text(size = 8)) +
     guides(fill = guide_colorbar(
       direction      = "horizontal",
       label.position = "bottom",
       title.hjust    = 0.5,
       barwidth       = unit(1.6, "in"),
-      barheight      = unit(0.1, "in")
-    ))
+      barheight      = unit(0.1, "in")))
   
 }
 
@@ -268,8 +259,7 @@ plot_grid(
   labels = c("(a)", "(b)"),
   label_size = 8,
   label_fontface = "plain",
-  ncol = 2
-)
+  ncol = 2)
 ggsave(filename = 'figures/Figure3_flame.png', 
   width = 6, height = 2.5, units = 'in', dpi = 500, bg = 'white')
 

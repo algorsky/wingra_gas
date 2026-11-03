@@ -78,8 +78,7 @@ watergrid_predict <- rasterToPoints(raster_layer, spatial = TRUE)
 # Ensure CRS matches outline
 watergrid_predict <- spTransform(
   watergrid_predict,
-  CRSobj = CRS(st_crs(outline_predict)$proj4string)
-)
+  CRSobj = CRS(st_crs(outline_predict)$proj4string))
 
 
 # ============================================================
@@ -103,8 +102,7 @@ variables <- c(
   "CH4uM",          "CH4uM_tau",
   "CO2Sat",         "CO2Sat_tau",
   "CO2uM",          "CO2uM_tau",
-  "pH"
-)
+  "pH")
 
 # Keep only variables that actually exist in the dataset
 variables <- intersect(variables, names(data))
@@ -122,8 +120,7 @@ variable_labels <- list(
   expression(paste("Carbon dioxide-tau (%)")),
   expression(paste("Carbon dioxide-raw (", mu, "M)")),
   expression(paste("Carbon dioxide-tau (", mu, "M)")),
-  expression(paste("pH"))
-)
+  expression(paste("pH")))
 
 
 # ============================================================
@@ -133,8 +130,7 @@ variable_labels <- list(
 color.palette.flame <- colorRampPalette(
   c(viridis(6, begin = .1, end = .98),
     rev(magma(5, begin = .5, end = .98))),
-  bias = 1
-)
+  bias = 1)
 
 
 # ============================================================
@@ -166,8 +162,7 @@ for (var_number in seq_along(variables)) {
     formula  = formula_idw,
     locations = data_idw,
     newdata  = watergrid_predict,
-    idp      = 2
-  )
+    idp      = 2)
   
   # Store predictions in output grid
   watergrid_predict_data@data[[var]] <- signif(predict_idw$var1.pred, 4)
@@ -195,8 +190,7 @@ for (var_number in seq_along(variables)) {
     theme_bw() +
     theme(
       panel.grid       = element_blank(),
-      panel.background = element_rect(fill = "gray")
-    ) +
+      panel.background = element_rect(fill = "gray")) +
     geom_sf(aes(color = .data[[var]]), shape = 15, size = 2) +
     geom_sf(data = outline_predict, fill = NA, color = "black") +
     labs(color = label_i) +
@@ -207,8 +201,7 @@ for (var_number in seq_along(variables)) {
       legend.box.background  = element_blank(),
       legend.background      = element_blank(),
       legend.text            = element_text(size = 10),
-      legend.title           = element_text(size = 10)
-    ) +
+      legend.title           = element_text(size = 10)) +
     guides(color = guide_colorbar(
       direction       = "horizontal",
       title.position  = "top",
@@ -216,8 +209,7 @@ for (var_number in seq_along(variables)) {
       title.hjust     = 0.5,
       barwidth        = unit(1.8, "in"),
       barheight       = unit(0.2, "in"),
-      frame.colour    = "black"
-    )) +
+      frame.colour    = "black")) +
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01))
   
@@ -229,6 +221,5 @@ for (var_number in seq_along(variables)) {
     dpi      = 400,
     width    = 6,
     height   = 6,
-    units    = "in"
-  )
+    units    = "in")
 }

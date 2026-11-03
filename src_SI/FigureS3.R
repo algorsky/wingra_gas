@@ -7,8 +7,7 @@ profiles <- read_csv("data/water_quality/profiles_all.csv") |>
     month(sampledate) %in% 3:5   ~ "Spring", # March-May
     month(sampledate) %in% 6:8   ~ "Summer", # June-August
     month(sampledate) %in% 9:10  ~ "Fall",   # September-October
-    month(sampledate) %in% 1:2   ~ "Under-ice"  # January-February, under ice
-  )) %>%
+    month(sampledate) %in% 1:2   ~ "Under-ice")) %>%  # January-February, under ice
   left_join(crosswalk, by = c("Site" = "site"))
 
 

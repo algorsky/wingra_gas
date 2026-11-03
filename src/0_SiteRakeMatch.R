@@ -11,8 +11,7 @@ site_rake_match <- purrr::map_dfr(seq_len(nrow(sites_sf)), function(i) {
     rating_site = sites_df$rating_site[i],
     neighbor = seq_along(idx),
     rake = lake_macrophytes$rake[idx],
-    distance_m = as.numeric(dist_matrix[i, idx])
-  )
+    distance_m = as.numeric(dist_matrix[i, idx]))
 })
 
 site_rake_mean <- sites_sf |>
@@ -22,8 +21,7 @@ site_rake_mean <- sites_sf |>
     mean_rake_nearest = purrr::map_dbl(seq_len(nrow(sites_sf)), function(i) {
       idx <- order(dist_matrix[i, ])[1:9]
       mean(lake_macrophytes$rake[idx], na.rm = TRUE)
-    })
-  )
+    }))
 
 
 print(site_rake_mean, n = Inf)

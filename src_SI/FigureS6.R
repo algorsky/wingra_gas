@@ -8,8 +8,7 @@ ice_long <- ice %>%
   pivot_longer(
     cols = c(avsnow, whiteice, blackice),
     names_to = "icetype",
-    values_to = "thickness"
-  ) %>%
+    values_to = "thickness") %>%
   mutate(icetype = dplyr::recode(icetype,
                                  "avsnow" = "snow",
                                  "whiteice" = "white",

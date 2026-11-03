@@ -49,8 +49,7 @@ for (site_id in unique(df$geo_site)) {
     geo_site = site_id,
     slope = slope,
     intercept = intercept,
-    r_squared = r_squared
-  )
+    r_squared = r_squared)
 }
 
 # Combine the results into one final dataframe
@@ -73,8 +72,7 @@ sites_CO2<- co2_winter_calc%>%
   group_by(geo_site) %>%
   summarize(
     co2_under_ice = mean(co2_under_ice),  # Average under-ice CO₂
-    co2_after_ice = mean(co2_after_ice)   # Average after-ice CO₂
-  ) %>%
+    co2_after_ice = mean(co2_after_ice)) %>%  # Average after-ice CO₂
   ungroup()%>%
   left_join(polygon_sa_depth, by = "geo_site")%>%
   rename(area_m2 = surface_area_m2)%>%
@@ -86,8 +84,7 @@ polygon_co2 <- co2_winter_calc %>%
   group_by(geo_site) %>%
   summarize(
     co2_under_ice = mean(co2_under_ice),  # Average under-ice CO₂
-    co2_after_ice = mean(co2_after_ice)   # Average after-ice CO₂
-  ) %>%
+    co2_after_ice = mean(co2_after_ice)) %>%  # Average after-ice CO₂
   ungroup()%>%
   left_join(polygon_sa_depth, by = "geo_site")%>%
   rename(area_m2 = surface_area_m2)%>%
@@ -123,8 +120,7 @@ winter_co2 <- tibble(
   season = "winter",
   wingra_co2_gC_m2_yr = 16.58153,
   wingra_co2_gC_m2_yr_max = 18.0389,
-  wingra_co2_gC_m2_yr_min = 15.12416
-)
+  wingra_co2_gC_m2_yr_min = 15.12416)
 
 
 
