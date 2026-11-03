@@ -2,6 +2,13 @@ library(tidyverse)
 library(patchwork)
 source('src/0_diffusive.R')
 
+# Site type, same definition and colours as Figures 1, 2, 4, 5 and 7: pelagic vs littoral from
+# geo_site (P = pelagic, L = littoral); littoral sites split at the 45-98 g gap in macrophyte
+# biomass. Legend shows only the biomass range of each type.
+type_levels <- c("pelagic", "littoral", "dense")
+type_labels <- c("0–9", "16–45", "98–227")
+type_fills  <- c(pelagic = "#e5f5e0", littoral = "#74c476", dense = "#006d2c")
+
 ph_dic = read_csv("data/temp_dic_ph.csv") |>
   rename(temp = Temp_C) %>%
   rename(ph = pH) %>%
@@ -11,16 +18,11 @@ data <- df %>%
   left_join(crosswalk, by = c("Site")) %>%
   left_join(ph_dic, by = c("site", "Date" = "sampledate")) %>%
   mutate(
-    # multcompView::vec2mat() splits Tukey comparison names on "-", so these levels must stay
-    # hyphen-free; the "0"/"1-29"/... labels are applied via scale_fill_brewer() below
-    biomass_rake_fulness = case_when(
-      biomass < 1 ~ "0",
-      biomass < 30 ~ "1to29",
-      biomass < 80 ~ "30to79",
-      biomass >= 80 ~ "80plus"
-    ),
-    biomass_rake_fulness = factor(biomass_rake_fulness, levels = c("0", "1to29", "30to79", "80plus"))
-  )
+    site_type = case_when(
+      startsWith(geo_site, "P") ~ "pelagic",
+      biomass < 80              ~ "littoral",
+      TRUE                      ~ "dense"),
+    site_type = factor(site_type, levels = type_levels))
 
 
 p1 <- ggplot(data) +
@@ -50,8 +52,8 @@ summary(co2_pH_lm)
 
 p3 <- ggplot(filter(data, season == "Summer")) +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  geom_point(aes(y = co2_mean *1000 *24, x = ph,  fill = biomass_rake_fulness), size = 2, shape = 21, stroke = 0.2) +
-  scale_fill_brewer(palette = "Greens", name = "Biomass (g)", labels = c("0", "1-29", "30-79", "80+")) +
+  geom_point(aes(y = co2_mean *1000 *24, x = ph,  fill = site_type), size = 2, shape = 21, stroke = 0.2) +
+  scale_fill_manual(values = type_fills, labels = type_labels, name = "Biomass (g)") +
   ylab(((expression(paste("C", O[2] , " Flux (mmol ", m^-2, d^-1,")"))))) +
   xlab("Surface water pH") +
   theme_bw(base_size = 9) +

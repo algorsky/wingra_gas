@@ -31,25 +31,26 @@ polygon_plot <- ggplot() +
     legend.box.background = element_rect(fill = "transparent", colour = NA),
     legend.box.spacing = unit(0, "pt"),
     legend.margin = margin(0,0,0,0),
-    legend.box.margin = margin(-4,0,0,0)
-  ) +
+    legend.box.margin = margin(-4,0,0,0)) +
   ggspatial::annotation_scale( bar_cols = c("grey", "white"), 
                                location = "br", text_cex = 0.5, pad_y = unit(0.15, "cm")); polygon_plot
+
+# Site type, same definition and colours as Figures 1, 2, 4 and 5: pelagic vs littoral from
+# geo_site (P = pelagic, L = littoral); littoral sites split at the 45-98 g gap in macrophyte
+# biomass. Legend shows only the biomass range of each type.
+type_levels <- c("pelagic", "littoral", "dense")
+type_labels <- c("0–9", "16–45", "98–227")
+type_fills  <- c(pelagic = "#e5f5e0", littoral = "#74c476", dense = "#006d2c")
 
 macrophyte<- read_csv("data/map/crosswalk_biomass.csv")
 co2_dissolved<- read_csv("data/co2_dissolved_use.csv")|>
   left_join(macrophyte, by = c("site")) |>
   mutate(
-    # multcompView::vec2mat() splits Tukey comparison names on "-", so these levels must stay
-    # hyphen-free; the "0"/"1-29"/... labels are applied via scale_fill/color_brewer() below
-    biomass_rake_fulness = case_when(
-      biomass < 1 ~ "0",
-      biomass < 30 ~ "1to29",
-      biomass < 80 ~ "30to79",
-      biomass >= 80 ~ "80plus"
-    ),
-    biomass_rake_fulness = factor(biomass_rake_fulness, levels = c("0", "1to29", "30to79", "80plus"))
-  )
+    site_type = case_when(
+      startsWith(geo_site, "P") ~ "pelagic",
+      biomass < 80              ~ "littoral",
+      TRUE                      ~ "dense"),
+    site_type = factor(site_type, levels = type_levels))
 # 13 days of freeze in December (13 + DOY = Days since Ice-On)
 co2_winter <- co2_dissolved%>%
   filter(season == "ice" | date == as.Date("2023-03-23"))%>%
@@ -58,25 +59,27 @@ co2_winter <- co2_dissolved%>%
   mutate(mM = CO2_mean/1000)%>%
   mutate(CO2_max = CO2_mean + CO2_sd)
 
+# Per-site linear fit of under-ice CO2 vs days since ice-on, extended (dashed) from the last
+# under-ice sample (day 61) to ice-off (day 91)
+ice_fits <- co2_winter |>
+  filter(season == "ice") |>
+  group_by(site, site_type) |>
+  summarise(int = coef(lm(CO2_mean ~ days_ice))[1],
+            slope = coef(lm(CO2_mean ~ days_ice))[2], .groups = "drop") |>
+  mutate(x = 61, xend = 91, y = int + slope * x, yend = int + slope * xend)
+
 co2_winter_plot <- ggplot() +
-  geom_smooth(data = filter(co2_winter, season == "ice"), aes(x = days_ice, y = CO2_mean, group = site, color = biomass_rake_fulness), method = "lm", se = F) +
+  geom_smooth(data = filter(co2_winter, season == "ice"), aes(x = days_ice, y = CO2_mean, group = site, color = site_type), method = "lm", se = F) +
   geom_vline(xintercept = 91, linetype = "dashed", linewidth = 0.8) +
-  geom_segment(aes(x = 61, xend = 91, y = -2.36 + 0.31*61, yend = -2.36 + 0.31*91), linetype ="dashed", color = "#F7FCF5") +
-  geom_segment(aes(x = 61, xend = 91, y = 0.01 + 0.57*61, yend = 0.01 + 0.57*91), linetype ="dashed", color = "#A1D99B") +
-  geom_segment(aes(x = 61, xend = 91, y = -8.68 + 0.53*61, yend = -8.68 + 0.53*91), linetype ="dashed", color = "#C7E9C0") +
-  geom_segment(aes(x = 61, xend = 91, y = -36.9 + 1.37*61, yend = -36.9 + 1.37*91), linetype ="dashed", color = "#41AB5D") +
-  geom_segment(aes(x = 61, xend = 91, y = -11.7 + 0.68*61, yend = -11.7 + 0.68*91), linetype ="dashed", color = "#E5F5E0") +
-  geom_segment(aes(x = 61, xend = 91, y = -207 + 6.59*61, yend = -207 + 6.59*91), linetype ="dashed", color = "#238B45") +
-  geom_segment(aes(x = 61, xend = 91, y = -174 + 5.48*61, yend = -174 + 5.48*91), linetype ="dashed", color = "#005A32") +
-  geom_segment(aes(x = 61, xend = 91, y = -7.29 + 0.92*61, yend = -7.29 + 0.92*91), linetype ="dashed", color = "#74C476") +
-  # geom_point(data = filter(co2_winter, season == "ice"), aes(x = days_ice, y = CO2_mean, fill = biomass_rake_fulness),
+  geom_segment(data = ice_fits, aes(x = x, xend = xend, y = y, yend = yend, color = site_type), linetype = "dashed") +
+  # geom_point(data = filter(co2_winter, season == "ice"), aes(x = days_ice, y = CO2_mean, fill = site_type),
   #   size = 2, shape = 21, stroke = 0.2) +
-  geom_pointrange(data = filter(co2_winter, season == "ice"), aes(x = days_ice, y = CO2_mean, ymin = CO2_mean - CO2_sd, ymax = CO2_mean + CO2_sd, fill = biomass_rake_fulness), shape = 21, stroke = 0.2) +
-  #geom_point(data = filter(co2_winter, season == "open"), aes(x = days_ice, y = CO2_mean, fill = biomass_rake_fulness), size = 2, shape = 21) +
-  geom_pointrange(data = filter(co2_winter, season == "open"), aes(x = days_ice, y = CO2_mean, ymin = CO2_mean - CO2_sd, ymax = CO2_mean + CO2_sd,fill = biomass_rake_fulness), shape = 21, stroke = 0.2) +
+  geom_pointrange(data = filter(co2_winter, season == "ice"), aes(x = days_ice, y = CO2_mean, ymin = CO2_mean - CO2_sd, ymax = CO2_mean + CO2_sd, fill = site_type), shape = 21, stroke = 0.2) +
+  #geom_point(data = filter(co2_winter, season == "open"), aes(x = days_ice, y = CO2_mean, fill = site_type), size = 2, shape = 21) +
+  geom_pointrange(data = filter(co2_winter, season == "open"), aes(x = days_ice, y = CO2_mean, ymin = CO2_mean - CO2_sd, ymax = CO2_mean + CO2_sd,fill = site_type), shape = 21, stroke = 0.2) +
   xlab("Days since ice-on") +
-  scale_color_brewer(palette = "Greens", name = "Biomass (g)", labels = c("0", "1-29", "30-79", "80+")) +
-  scale_fill_brewer(palette = "Greens", name = "Biomass (g)", labels = c("0", "1-29", "30-79", "80+")) +
+  scale_color_manual(values = type_fills, labels = type_labels, name = "Biomass (g)") +
+  scale_fill_manual(values = type_fills, labels = type_labels, name = "Biomass (g)") +
   ylab(expression(paste("Surface C", O[2], " (", µ,"mol ", L^-1,")"))) +
   theme_bw(base_size = 9) +
   theme(legend.position = "inside",
@@ -101,6 +104,5 @@ plot_grid(
   labels = c("(a)", "(b)"),
   label_size = 8,
   label_fontface = "plain",
-  ncol = 2
-)
+  ncol = 2)
 ggsave(filename = 'figures/Figure7.png', width = 6, height = 2.5, units = 'in', dpi = 500, bg = 'white')
