@@ -6,30 +6,35 @@ library(khroma)
 source('src/0_maps.R')
 source('src/0_WingraLanduseMap.R')
 
+# Site type, same definition and colours as Figure 4: pelagic vs littoral from geo_site
+# (P = pelagic, L = littoral); littoral sites split at the 45-98 g gap in macrophyte biomass
+type_levels <- c("pelagic", "littoral", "dense")
+type_labels <- c("Pelagic (0–9 g)", "Littoral (16–45 g)", "Dense littoral (98–227 g)")
+type_fills  <- c(pelagic = "#e5f5e0", littoral = "#74c476", dense = "#006d2c")
+
 sites_sf <- sites_sf |>
   mutate(
-    # multcompView::vec2mat() splits Tukey comparison names on "-", so these levels must stay
-    # hyphen-free; the "0"/"1-29"/... labels are applied via scale_fill_brewer() below
-    biomass_rake_fulness = case_when(
-      biomass < 1 ~ "0",
-      biomass < 30 ~ "1to29",
-      biomass < 80 ~ "30to79",
-      biomass >= 80 ~ "80plus"
-    ),
-    biomass_rake_fulness = factor(biomass_rake_fulness, levels = c("0", "1to29", "30to79", "80plus"))
-  )
+    site_type = case_when(
+      startsWith(geo_site, "P") ~ "pelagic",
+      biomass < 80              ~ "littoral",
+      TRUE                      ~ "dense"),
+    site_type = factor(site_type, levels = type_levels))
 
 bathy_map <- ggplot() +
   geom_sf(data = wingra, color = 'grey99') +
   geom_sf(data = tprs_sf, aes(color = depth), size = 3) +  # Plot depth using color
   geom_point(data = sites_sf, aes(st_coordinates(geometry)[,1], y = st_coordinates(geometry)[,2],
-                                 fill = biomass_rake_fulness), color = "black", size = 3, shape = 21, stroke = 0.2) +
+                                 fill = site_type), color = "black", size = 3, shape = 21, stroke = 0.2) +
   geom_text(data = sites_sf, aes(st_coordinates(geometry)[,1], y = st_coordinates(geometry)[,2],
                                                    label = rating), color = "black", size = 2) +
   scale_colour_sunset(range = c(0,1), reverse = TRUE, name = "Depth (m)") +
-  scale_fill_brewer(palette = "Greens", name = "Biomass (g)", labels = c("0", "1-29", "30-79", "80+"),
-                     guide = guide_legend(title.position = "top", nrow = 1, byrow = TRUE)) +
-  guides(colour = guide_colorbar(title.position = "top", barwidth = unit(1.5, "cm"), barheight = unit(0.2, "cm"))) +
+  scale_fill_manual(values = type_fills, labels = type_labels, name = "Site Type (macrophyte biomass)",
+                    guide = guide_legend(title.position = "top", title.hjust = 0.5, nrow = 1,
+                                         theme = theme(legend.text = element_text(size = 6, margin = margin(l = 1.5))))) +
+  # depth colour bar sits inside the panel (top left); site-type legend stays below the map
+  guides(colour = guide_colorbar(position = "inside", title.position = "top", direction = "horizontal",
+                                 barwidth = unit(1.5, "cm"), barheight = unit(0.2, "cm"),
+                                 theme = theme(legend.text = element_text(size = 5.5, margin = margin(t = 1))))) +
   scale_y_continuous(breaks = c(43.05, 43.054, 43.058)) +
   scale_x_continuous(breaks = c(-89.43, -89.42, -89.41)) +
   theme_bw(base_size = 9)+
@@ -41,15 +46,18 @@ bathy_map <- ggplot() +
     legend.key.width = unit(0.25,'cm'),
     legend.position = 'bottom',
     legend.box = "horizontal",
+    legend.location = "plot",                   # centre site legend under the whole panel (map + axis)
+    legend.position.inside = c(0.02, 0.98),     # depth bar: top-left corner of the panel
+    legend.justification.inside = c(0, 1),
     legend.title = element_text(size=7),
-    legend.text = element_text(size=7),
+    legend.text = element_text(size=7, margin = margin(l = 1.5)),  # tight key-label gap so
+    legend.key.spacing.x = unit(4, "pt"),                         # one-row site legend fits
     legend.spacing.x = unit(6, "pt"),
     legend.background = element_rect(fill = "transparent", colour = NA),
     legend.box.background = element_rect(fill = "transparent", colour = NA),
     legend.box.spacing = unit(0, "pt"),
     legend.margin = margin(0,0,0,0),
-    legend.box.margin = margin(4,0,0,0)
-  )+
+    legend.box.margin = margin(4,0,0,0)) +
   ggspatial::annotation_scale(bar_cols = c("grey", "white"),
    location = "br", text_cex = 0.5, pad_y = unit(0.15, "cm")); bathy_map
 
@@ -75,36 +83,22 @@ macrophyte_map <- ggplot() +
     legend.key.width = unit(0.1,'cm'),
     legend.position = 'bottom',
     legend.title = element_text(size=8),
-    legend.text = element_text(size=8),
+    legend.text = element_text(size=6),   # match site-type legend in (b)
     legend.direction="horizontal",
     legend.background = element_rect(fill = "transparent", colour = NA),
     legend.box.background = element_rect(fill = "transparent", colour = NA),
     legend.box.spacing = unit(0, "pt"),
     legend.margin = margin(0,0,0,0),
     legend.box.margin = margin(4,0,0,0),
-    axis.title.x = element_blank()
-    
-  )+
-  ggspatial::annotation_scale( bar_cols = c("grey", "white"),  location = "br")
+    axis.title.x = element_blank()) +
+  ggspatial::annotation_scale(bar_cols = c("grey", "white"),   # same scale bar as (b)
+   location = "br", text_cex = 0.5, pad_y = unit(0.15, "cm"))
  
 
-plot_grid(
-  wingra.map,
-  plot_grid(
-    bathy_map,
-    macrophyte_map,
-    labels = c("(b)", "(c)"),
-    label_fontface = "plain",
-    label_size = 8,
-    ncol = 2,
-    align = "h"
-  ),
-  labels = c("(a)", ""),
-  label_fontface = "plain",
-  label_size = 8,
-  ncol = 1,
-  rel_heights = c(1, 1)
-)
+bottom_row <- plot_grid(bathy_map, macrophyte_map, ncol = 2, align = "h",
+                        labels = c("(b)", "(c)"), label_fontface = "plain", label_size = 8)
+plot_grid(wingra.map, bottom_row, ncol = 1,
+          labels = c("(a)", ""), label_fontface = "plain", label_size = 8)
 
 ggsave('figures/Figure1.png', width = 6, height = 5, units = 'in', dpi = 500, bg = 'white')
 
