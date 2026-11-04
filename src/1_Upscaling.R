@@ -21,7 +21,7 @@ co2_data_season<- df_figure%>%
   mutate(geo_site = ifelse(geo_site == "L.SW" | geo_site == "L.W", "L.W", geo_site))%>%
   group_by(geo_site, season)%>%
   summarize(co2_mean = mean(co2_mmol.m2.d), 
-            co2_sd = sd(co2_sd_units),
+            co2_sd = mean(co2_sd_units),  # mean replicate SD (measurement variability)
             n = n())
 
 co2_data_sd<- co2_data_season%>%

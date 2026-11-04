@@ -37,7 +37,7 @@ fmt <- function(d) sprintf("%s ± %s", signif(d$mean, 2), signif(d$pm, 2))
 
 table2 <- tibble(
   Season = c("Summer", "Fall", "Ice melt*", "Spring", "Annual", "Annual - no macrophytes"),
-  `CO2 (g C m-2 y-1)` = c(
+  `CO2 (g C m-2)` = c(
     fmt(filter(open_seasons, season == "Summer")),
     fmt(filter(open_seasons, season == "Fall")),
     sprintf("%s (%s)", fmt(ice_linear), fmt(ice_plateau)),
