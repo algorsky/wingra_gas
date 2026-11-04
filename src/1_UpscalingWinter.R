@@ -67,72 +67,77 @@ co2_winter_calc<- co2_winter_flux%>%
 co2_winter_calc_plateau<- co2_winter_flux%>%
   dplyr::select(geo_site, CO2_mean_plateau, CO2_sd_plateau, co2_after_ice, CO2_sd_off)
 
-sites_CO2<- co2_winter_calc%>%
-  mutate(geo_site = ifelse(geo_site == "L.SW" | geo_site == "L.W", "L.W", geo_site))%>%
-  group_by(geo_site) %>%
-  summarize(
-    co2_under_ice = mean(co2_under_ice),  # Average under-ice CO₂
-    co2_after_ice = mean(co2_after_ice)) %>%  # Average after-ice CO₂
-  ungroup()%>%
-  left_join(polygon_sa_depth, by = "geo_site")%>%
-  rename(area_m2 = surface_area_m2)%>%
-  rename(depth_m = depth)%>%
-  dplyr:: select(-cluster)
+#### CO2 released at ice-off, by polygon ####
+# Total lake area, as in 1_Upscaling.R (lake-wide rate = total gC / lake area)
+surfacearea <- sum(polygon_sa_depth$area)
 
-polygon_co2 <- co2_winter_calc %>%
-  mutate(geo_site = ifelse(geo_site == "L.SW" | geo_site == "L.W", "L.W", geo_site))%>%
-  group_by(geo_site) %>%
-  summarize(
-    co2_under_ice = mean(co2_under_ice),  # Average under-ice CO₂
-    co2_after_ice = mean(co2_after_ice)) %>%  # Average after-ice CO₂
-  ungroup()%>%
-  left_join(polygon_sa_depth, by = "geo_site")%>%
-  rename(area_m2 = surface_area_m2)%>%
-  rename(depth_m = depth)%>%
-  dplyr:: select(-cluster)
+# Under-ice CO2 extrapolated to ice-off (day 91) from a per-site regression on days since ice-on
+extrapolate_ice_off <- function(data, y) {
+  data %>%
+    group_by(geo_site) %>%
+    summarize(co2_under_ice = predict(lm(.data[[y]] ~ days_ice), newdata = tibble(days_ice = 91)))
+}
 
-# Convert depth to volume (L) for each polygon
-polygon_co2_L <- polygon_co2 %>%
-  mutate(volume_L = area_m2 * depth_m * 1000)  # 1 m³ = 1000 L
+# For each polygon (L.W and L.SW share one): CO2 stored at ice-off minus CO2 after ice-off,
+# times water volume. Negative values (more CO2 after ice-off than at ice-off) are set to 0.
+# Input: geo_site, co2_under_ice and co2_after_ice (µmol/L), one row per site.
+storage_flux <- function(d) {
+  d %>%
+    mutate(geo_site = ifelse(geo_site == "L.SW" | geo_site == "L.W", "L.W", geo_site)) %>%
+    group_by(geo_site) %>%
+    summarize(
+      co2_under_ice = mean(co2_under_ice),  # Average under-ice CO₂
+      co2_after_ice = mean(co2_after_ice)) %>%  # Average after-ice CO₂
+    ungroup() %>%
+    left_join(polygon_sa_depth, by = "geo_site") %>%
+    rename(area_m2 = surface_area_m2, depth_m = depth) %>%
+    dplyr::select(-cluster) %>%
+    mutate(
+      volume_L = area_m2 * depth_m * 1000,  # 1 m³ = 1000 L
+      co2_storage_ice_off_mol = (co2_under_ice * volume_L) / 1e6,  # Convert μmol to mol
+      co2_storage_post_ice_mol = (co2_after_ice * volume_L) / 1e6,
+      total_efflux_mol_site = co2_storage_ice_off_mol - co2_storage_post_ice_mol,
+      total_efflux_mol_site_filter = ifelse(total_efflux_mol_site < 0, 0, total_efflux_mol_site),
+      total_efflux_gC = total_efflux_mol_site_filter * 12.01,
+      flux_gC_m2_year_site = total_efflux_gC/area_m2)  # gC per m² of that polygon
+}
 
-# Calculate total CO₂ storage (mol) at ice-off and post ice-off
-co2_winter_calc_gC <- polygon_co2_L %>%
-  mutate(
-    co2_storage_ice_off_mol = (co2_under_ice * volume_L) / 1e6,  # Convert μmol to mol
-    co2_storage_post_ice_mol = (co2_after_ice * volume_L) / 1e6,
-    total_efflux_mol_site = co2_storage_ice_off_mol - co2_storage_post_ice_mol,
-    total_efflux_mol_site_filter = ifelse(total_efflux_mol_site < 0, 0, total_efflux_mol_site),
-    total_efflux_gC = total_efflux_mol_site_filter * 12.01,
-    flux_gC_m2_year_site = total_efflux_gC/area_m2) #gC
+# Lake-wide winter efflux (gC per m² of lake) = sum of polygon gC / total lake area
+lake_flux <- function(d) sum(d$total_efflux_gC) / surfacearea
 
-sites_plateau <- sites %>%
-  mutate(
-    co2_storage_ice_off_mol = (co2_under_ice * volume_L) / 1e6,  # Convert μmol to mol
-    co2_storage_post_ice_mol = (co2_after_ice * volume_L) / 1e6,
-    total_efflux_mol_site = co2_storage_ice_off_mol - co2_storage_post_ice_mol,
-    total_efflux_mol_site_filter = ifelse(total_efflux_mol_site < 0, 0, total_efflux_mol_site),
-    total_efflux_gC = total_efflux_mol_site_filter * 12.01,
-    flux_gC_m2_year_site = total_efflux_gC/area_m2) 
+# Linear scenario: CO2 keeps rising at the under-ice rate until ice-off.
+# Max/min as in 1_Upscaling.R (mean ± SD): regression on CO2 ± SD, after-ice CO2 ∓ SD.
+co2_winter_calc_gC <- storage_flux(co2_winter_calc)
+sites_max <- extrapolate_ice_off(df, "CO2_max") %>%
+  left_join(co2_iceoff, by = "geo_site") %>%
+  mutate(co2_after_ice = CO2_mean_off - CO2_sd_off) %>%
+  storage_flux()
+sites_min <- extrapolate_ice_off(mutate(df, CO2_min = CO2_mean - CO2_sd), "CO2_min") %>%
+  left_join(co2_iceoff, by = "geo_site") %>%
+  mutate(co2_after_ice = CO2_mean_off + CO2_sd_off) %>%
+  storage_flux()
 
-total_efflux_gC_m2_year <- sum(co2_winter_calc_gC$flux_gC_m2_year_site)
+# Plateau scenario: CO2 stays at the last under-ice measurement (2023-02-17) until ice-off
+sites_plateau <- co2_winter_calc_plateau %>%
+  rename(co2_under_ice = CO2_mean_plateau) %>%
+  storage_flux()
+sites_plateau_max <- co2_winter_calc_plateau %>%
+  mutate(co2_under_ice = CO2_mean_plateau + CO2_sd_plateau, co2_after_ice = co2_after_ice - CO2_sd_off) %>%
+  storage_flux()
+sites_plateau_min <- co2_winter_calc_plateau %>%
+  mutate(co2_under_ice = CO2_mean_plateau - CO2_sd_plateau, co2_after_ice = co2_after_ice + CO2_sd_off) %>%
+  storage_flux()
 
 winter_co2 <- tibble(
   season = "winter",
-  wingra_co2_gC_m2_yr = 16.58153,
-  wingra_co2_gC_m2_yr_max = 18.0389,
-  wingra_co2_gC_m2_yr_min = 15.12416)
+  wingra_co2_gC_m2_yr = lake_flux(co2_winter_calc_gC),
+  wingra_co2_gC_m2_yr_max = lake_flux(sites_max),
+  wingra_co2_gC_m2_yr_min = lake_flux(sites_min))
 
+winter_co2_plateau <- tibble(
+  season = "winter (plateau)",
+  wingra_co2_gC_m2_yr = lake_flux(sites_plateau),
+  wingra_co2_gC_m2_yr_max = lake_flux(sites_plateau_max),
+  wingra_co2_gC_m2_yr_min = lake_flux(sites_plateau_min))
 
-
-# Convert depth to volume (L) for each polygon
-sites_max <- sites_max %>%
-  mutate(volume_L = area_m2 * depth_m * 1000) %>% # 1 m³ = 1000 L
-  mutate(
-    co2_storage_ice_off_mol = (co2_under_ice * volume_L) / 1e6,  # Convert μmol to mol
-    co2_storage_post_ice_mol = (co2_after_ice * volume_L) / 1e6,
-    total_efflux_mol_site = co2_storage_ice_off_mol - co2_storage_post_ice_mol,
-    total_efflux_mol_site_filter = ifelse(total_efflux_mol_site < 0, 0, total_efflux_mol_site),
-    total_efflux_gC = total_efflux_mol_site_filter * 12.01,
-    flux_gC_m2_year_site = total_efflux_gC/area_m2)
-
-total_efflux_gC_m2_year_max <- sum(sites_max$flux_gC_m2_year_site)
+bind_rows(winter_co2, winter_co2_plateau)

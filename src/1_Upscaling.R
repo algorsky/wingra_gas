@@ -5,7 +5,7 @@ library(tidyverse)
 
 #Data
 ################################# co2 data #################################
-source('0_diffusive.R')
+source('src/0_diffusive.R')
 
 ################################# polygons #################################
 polygon_sa_depth<- read_csv("data/polygon_sa_depth.csv")
@@ -33,12 +33,12 @@ co2_data_sd<- co2_data_season%>%
 co2_season_sum<- co2_data_season%>%
   mutate(co2_max = co2_mean + co2_sd)%>%
   mutate(co2_min = co2_mean - co2_sd)%>%
-  mutate(annual_mmol_m2_year = ifelse(season == "fall", co2_mean * 101,
-                                      ifelse(season == "summer", co2_mean * 92, co2_mean * 73)))%>%
-  mutate(annual_mmol_m2_year_max = ifelse(season == "fall", co2_max * 101,
-                                          ifelse(season == "summer", co2_max * 92, co2_max * 73)))%>%
-  mutate(annual_mmol_m2_year_min = ifelse(season == "fall", co2_min * 101,
-                                          ifelse(season == "summer", co2_min * 92, co2_min * 73)))
+  mutate(annual_mmol_m2_year = ifelse(season == "Fall", co2_mean * 101,
+                                      ifelse(season == "Summer", co2_mean * 92, co2_mean * 73)))%>%
+  mutate(annual_mmol_m2_year_max = ifelse(season == "Fall", co2_max * 101,
+                                          ifelse(season == "Summer", co2_max * 92, co2_max * 73)))%>%
+  mutate(annual_mmol_m2_year_min = ifelse(season == "Fall", co2_min * 101,
+                                          ifelse(season == "Summer", co2_min * 92, co2_min * 73)))
 
 co2_season_flux <- co2_season_sum%>%
   left_join(polygon_sa_depth, by = "geo_site")%>%
