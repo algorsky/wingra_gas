@@ -53,7 +53,7 @@ for (site_id in unique(df$geo_site)) {
 }
 
 # Combine the results into one final dataframe
-co2_winter_regression <- bind_rows(results)
+co2_winter_regression <- bind_rows(results) # Slopes in paper here (5.5 and 6.6 µM d⁻¹)
 
 co2_winter_flux<- co2_winter_regression%>%
   mutate(co2_under_ice = intercept + slope *91)%>%

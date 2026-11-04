@@ -89,3 +89,11 @@ winter_contrasts
 # Compact letters: site types sharing a letter do not differ (Holm p >= 0.05)
 multcompLetters(setNames(winter_contrasts$p_holm < 0.05,
                          paste(pairs[1, ], pairs[2, ], sep = "-")))$Letters
+
+# Under ice, dissolved CO2 differed among site types (linear mixed-effects model on log-transformed 
+# CO2 with site and sampling date as random effects; F₂,₅ = 18.4, p = 0.005). 
+# Dense littoral sites had 5.4 and 3.5 times the CO2 of pelagic and littoral sites, 
+# respectively (Holm-corrected p = 0.007 and 0.009), while pelagic and littoral sites did not differ (p = 0.14).
+
+
+
