@@ -16,7 +16,7 @@ alk <- alk |>
       TRUE                      ~ "dense"),
     site_type = factor(site_type, levels = type_levels))
 
-ggplot(filter(alk, site != 6 & sampledate != as.Date("2022-07-25"))) +
+ggplot(filter(alk, !(site == 6 & sampledate == as.Date("2022-07-25")))) +
   annotate("rect",
     xmin = as.Date("2022-12-18"), xmax = as.Date("2023-03-20"),
     ymin = -Inf, ymax = Inf, fill = "gray", alpha = 0.3) +
