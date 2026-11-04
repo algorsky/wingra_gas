@@ -136,7 +136,11 @@ fills <- c(pelagic = "#e5f5e0", littoral = "#74c476", dense = "#006d2c")
 
 make_plot <- function(df, letters_df, response, ylab) {
   p <- ggplot(df, aes(season, .data[[response]], fill = site_type)) +
-    geom_boxplot(position = dodge, linewidth = 0.2, outlier.size = 0.2) +
+    # outliers hidden because every point is drawn on top (jittered within its box; seed fixed)
+    geom_boxplot(position = dodge, linewidth = 0.2, outlier.shape = NA) +
+    geom_point(aes(group = site_type), shape = 21, size = 0.6, stroke = 0.2, alpha = 0.7,
+               position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.8, seed = 1),
+               show.legend = FALSE) +
     scale_fill_manual(values = fills, labels = type_labels, name = NULL) +
     xlab("") + ylab(ylab) +
     theme_bw(base_size = 9)
