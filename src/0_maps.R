@@ -6,7 +6,7 @@ library(sf)
 wingra = st_read('data/gis/YaharaLakes/yld_study_lakes.shp')|>
   filter(LAKEID == "WI")
 #Use the dnr depth from macrophyte survey to transform tprs data
-dnr_depth <- read_csv('data/map/depth_dnr.csv')|>
+dnr_depth <- read_csv('data/map/depth_dnr_2023.csv')|>
   mutate(depth_m = depth_ft * 0.3048)
 depth_sf = st_as_sf(dnr_depth, coords = c("longitude", "latitude"), crs = 4326, agr = "constant")|>
   mutate(depth_m = depth_ft * 0.3048)%>%

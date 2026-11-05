@@ -15,13 +15,13 @@ sites = read_csv('data/map/crosswalk_biomass.csv')
 sites_sf = st_as_sf(sites, coords = c("longitude", "latitude"), crs = 4326, agr = "constant")
 
 # Read DNR data sheet 
-dnr = read_csv('data/map/DNRsurvey.csv')
+dnr = read_csv('data/map/DNRsurvey_2022.csv')
 # Rake rating (0 to 3; 10 means it wasn't sampled)
 post_22 <- read_csv('data/map/macrophyte_22_rake.csv') # DNR data with rake ratings adjusted
 # Convert data to spatial
 post_22_sf = st_as_sf(post_22, coords = c("longitude", "latitude"), crs = 4326)
 macrophytes_sf <- st_as_sf(dnr, coords = c("longitude", "latitude"), crs = 4326)
-dnr_depth <- read_csv('data/map/depth_dnr.csv')|>
+dnr_depth <- read_csv('data/map/depth_dnr_2023.csv')|>
   mutate(depth_m = depth_ft * 0.3048)
 depth_sf = st_as_sf(dnr_depth, coords = c("longitude", "latitude"), crs = 4326, agr = "constant")|>
   mutate(depth_m = depth_ft * 0.3048)%>%
@@ -154,7 +154,7 @@ polygons <- cluster_polygons %>%
 stopifnot(!anyNA(polygons$site), !anyDuplicated(polygons$site))
 
 #Average depth and surface area of each polygon
-dnr_depth <- read_csv('data/map/depth_dnr.csv')|>
+dnr_depth <- read_csv('data/map/depth_dnr_2023.csv')|>
   mutate(depth_m = depth_ft * 0.3048)
 
 depth_sf = st_as_sf(dnr_depth, coords = c("longitude", "latitude"), crs = 4326, agr = "constant")|>
