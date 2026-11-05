@@ -29,16 +29,16 @@ co2_data_sd<- co2_data_season%>%
   mutate(co2_min = co2_mean - co2_sd)
 
 #Multiple seasonal average by the number of days in the season
-#Summer = 92; Fall = 101; Spring = 73 
+# Summer: 1 Jun-31 Aug. Fall: 1 Sep to ice-on (18 Dec), minus 7 days of ice cover 21-27 Nov.
+# Spring: ice-off (20 Mar) to 31 May. Ice-covered: 21-27 Nov + 18 Dec-19 Mar = 99 days.
+season_days <- c(Summer = 92, Fall = 101, Spring = 73)
 co2_season_sum<- co2_data_season%>%
   mutate(co2_max = co2_mean + co2_sd)%>%
   mutate(co2_min = co2_mean - co2_sd)%>%
-  mutate(annual_mmol_m2_year = ifelse(season == "Fall", co2_mean * 101,
-                                      ifelse(season == "Summer", co2_mean * 92, co2_mean * 73)))%>%
-  mutate(annual_mmol_m2_year_max = ifelse(season == "Fall", co2_max * 101,
-                                          ifelse(season == "Summer", co2_max * 92, co2_max * 73)))%>%
-  mutate(annual_mmol_m2_year_min = ifelse(season == "Fall", co2_min * 101,
-                                          ifelse(season == "Summer", co2_min * 92, co2_min * 73)))
+  mutate(days = season_days[as.character(season)],
+         annual_mmol_m2_year = co2_mean * days,
+         annual_mmol_m2_year_max = co2_max * days,
+         annual_mmol_m2_year_min = co2_min * days)
 
 co2_season_flux <- co2_season_sum%>%
   left_join(polygon_sa_depth, by = "geo_site")%>%

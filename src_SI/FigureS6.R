@@ -1,6 +1,8 @@
 library(tidyverse)
 
-ice <- read_csv('supplementary/data/ice.csv')|>
+crosswalk <- read_csv("data/map/crosswalk_biomass.csv")
+
+ice <- read_csv('data/ice.csv')|>
   rename(sample_date = sampledate)%>%
   dplyr::select(site, sample_date, avsnow, totice, whiteice, blackice,secchi)
 
@@ -32,4 +34,4 @@ ggplot(ice_stacked, aes(x = as.factor(sample_date), y = thickness, fill = icetyp
   theme_bw(base_size = 9) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-ggsave(filename = 'figures_SI/FigureS6.png', width = 6.5, height = 4, units = 'in')
+ggsave(filename = 'figures_SI/FigureS6.png', width = 6.5, height = 4, units = 'in', dpi = 500)

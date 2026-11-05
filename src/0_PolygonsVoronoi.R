@@ -22,9 +22,9 @@ post_22 <- read_csv('data/map/macrophyte_22_rake.csv') # DNR data with rake rati
 post_22_sf = st_as_sf(post_22, coords = c("longitude", "latitude"), crs = 4326)
 macrophytes_sf <- st_as_sf(dnr, coords = c("longitude", "latitude"), crs = 4326)
 dnr_depth <- read_csv('data/map/depth_dnr.csv')|>
-  mutate(depth_m = depth_ft *  0.304)
+  mutate(depth_m = depth_ft * 0.3048)
 depth_sf = st_as_sf(dnr_depth, coords = c("longitude", "latitude"), crs = 4326, agr = "constant")|>
-  mutate(depth_m = depth_ft *  0.304)%>%
+  mutate(depth_m = depth_ft * 0.3048)%>%
   mutate(Depth_m_fill = if_else(is.na(depth_m), 0, depth_m))
 
 # Join DNR data
@@ -74,6 +74,7 @@ clustering_data_scaled <- scale(clustering_data) # scale data
 # Increase 'importance' of location so multiple scale lat/long by 2
 clustering_data_scaled[,1:2] = clustering_data_scaled[,1:2]*2 
 # kmeans with 8 clusters
+set.seed(1)  # k-means starts are random; fixes the clustering if polygons are regenerated
 kmeans_result <- stats::kmeans(clustering_data_scaled, centers = 8, nstart = 20)
 # add cluster to dataframe 
 macrophytes_sf$cluster <- kmeans_result$cluster
@@ -135,15 +136,29 @@ ggplot() +
 lake_macrophytes <- st_intersection(lake_outline, macrophytes_sf)
 
 
-#Average depth and surface area of each polygon
-polygons<- cluster_polygons%>%
-  mutate(site = c(5, 6, 1, 3, 8, 7, 4))
+#### Upscaling polygons ####
+# k-means is random, so the clusters above differ from the polygons used in the paper (they were
+# made before a seed was set). The polygons used for upscaling and shown in Fig. 7a are saved in
+# data/map/upscaling_polygons.gpkg. Set regenerate_polygons <- TRUE to replace them with this run's.
+regenerate_polygons <- FALSE
+polygon_file <- "data/map/upscaling_polygons.gpkg"
+if (regenerate_polygons) {
+  st_write(dplyr::select(cluster_polygons, cluster), polygon_file, delete_dsn = TRUE)
+}
+cluster_polygons <- st_read(polygon_file, quiet = TRUE)
 
+# Label each polygon with the sampling site inside it (spatial join, not row order).
+# Sites 2 (L.SW) and 3 (L.W) share a polygon, which is labelled site 3.
+polygons <- cluster_polygons %>%
+  st_join(dplyr::select(filter(sites_sf, site != 2), site), join = st_contains)
+stopifnot(!anyNA(polygons$site), !anyDuplicated(polygons$site))
+
+#Average depth and surface area of each polygon
 dnr_depth <- read_csv('data/map/depth_dnr.csv')|>
-  mutate(depth_m = depth_ft *  0.304)
+  mutate(depth_m = depth_ft * 0.3048)
 
 depth_sf = st_as_sf(dnr_depth, coords = c("longitude", "latitude"), crs = 4326, agr = "constant")|>
-  mutate(depth_m = depth_ft *  0.304)
+  mutate(depth_m = depth_ft * 0.3048)
 
 # Ensure both datasets have the same CRS
 depth_sf <- st_transform(depth_sf, st_crs(polygons))
@@ -151,21 +166,20 @@ depth_sf <- st_transform(depth_sf, st_crs(polygons))
 # Spatial join: Assign each depth point to the corresponding polygon
 depth_with_polygons <- st_join(depth_sf, polygons, left = FALSE)  # left = FALSE removes unmatched points
 
-# Compute average depth for each polygon cluster
+# Average depth of each polygon; points with no depth (non-navigable, plants) set to 0.5 m
 polygon_avg_depth <- depth_with_polygons %>%
-  mutate(Depth_m_fill = if_else(is.na(depth_m), 0.5, depth_m)) %>% # fill in missing depths with zero
-  group_by(site) %>%  # Adjust if the polygon ID is different
-  # summarize(avg_depth_m = mean(depth_m, na.rm = TRUE))%>%
-  summarize(avg_depth_m = mean(Depth_m_fill, na.rm = TRUE))
+  st_drop_geometry() %>%
+  mutate(Depth_m_fill = if_else(is.na(depth_m), 0.5, depth_m)) %>%
+  group_by(site) %>%
+  summarize(depth = mean(Depth_m_fill))
 
-depth<- polygon_avg_depth$avg_depth_m
-
+# Joined by site (not by row position)
 polygon_sa_depth <- polygons %>%
-  mutate(surface_area_m2 = st_area(.))%>%
-  dplyr::select(cluster, site, surface_area_m2)%>%
-  mutate(area = as.numeric(surface_area_m2))%>%
-  cbind(depth)%>%
+  mutate(surface_area_m2 = as.numeric(st_area(.))) %>%
+  dplyr::select(cluster, site, surface_area_m2) %>%
+  mutate(area = surface_area_m2) %>%
+  left_join(polygon_avg_depth, by = "site") %>%
   left_join(sites, by = "site")
 
-#write_csv(polygon_sa_depth, "data/polygon_sa_depth.csv")
-
+# Input to 1_Upscaling.R and 1_UpscalingWinter.R
+write_csv(polygon_sa_depth, "data/polygon_sa_depth.csv")

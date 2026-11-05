@@ -33,10 +33,15 @@ annual_no_macro <- pm(p1$co2_mmol_m2_year, p1$co2_mmol_m2_year_max, p1$co2_mmol_
 p1_ice <- filter(ice_env$co2_winter_calc_gC, geo_site == "P1")$flux_gC_m2_year_site
 stopifnot(p1_ice == 0)
 
+# Ice-covered days: 21-27 Nov 2022 and 18 Dec 2022-19 Mar 2023 (Magnuson et al. 2023)
+ice_days <- 7 + 92
+stopifnot(sum(open_env$season_days) + ice_days == 365)
+
 fmt <- function(d) sprintf("%s ± %s", signif(d$mean, 2), signif(d$pm, 2))
 
 table2 <- tibble(
   Season = c("Summer", "Fall", "Ice melt*", "Spring", "Annual", "Annual - no macrophytes"),
+  Days = c(open_env$season_days[c("Summer", "Fall")], ice_days, open_env$season_days["Spring"], 365, 365),
   `CO2 (g C m-2)` = c(
     fmt(filter(open_seasons, season == "Summer")),
     fmt(filter(open_seasons, season == "Fall")),
@@ -46,4 +51,5 @@ table2 <- tibble(
     fmt(annual_no_macro)))
 
 table2
-# * Ice melt: linear accumulation to ice-off; plateau scenario in parentheses
+# * Ice melt: CO2 stored under ice released at ice-off (ice-covered days shown); linear accumulation
+#   to ice-off, plateau scenario in parentheses

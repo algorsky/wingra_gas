@@ -67,7 +67,7 @@ carbonate <- function(TEMP=16, DIC=2002, pH=8, output = "mg") {
   #ALK eq/kg × 50,000 mg/eq = mg/kg as CaCO3
   
   if (output == "mol") {
-    return(data.frame(co2_molkg = H2CO3, bicarbonate_molkg = HCO3, carbonate = CO3_molkg, alkalinity_eqkg = ALK)) # mol/kg
+    return(data.frame(co2_molkg = H2CO3, bicarbonate_molkg = HCO3, carbonate_molkg = CO3, alkalinity_eqkg = ALK)) # mol/kg
   } else if (output == "mg") {
     # To convert moles per kg to milligrams per kg (mg/kg), 
     # multiply the bicarbonate result by 61,017.1, the carbonate result by 60,009.2, 
