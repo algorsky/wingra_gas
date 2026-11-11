@@ -1,32 +1,104 @@
 library(tidyverse)
+library(lubridate)
+library(patchwork)
 
-crosswalk <- read_csv("data/map/crosswalk_biomass.csv")
+#Load data
+tntp <- read_csv('data/water_quality/TNTP.csv')
+chloro_all<- read_csv("data/water_quality/chlorophyll.csv")
 
-profiles <- read_csv("data/water_quality/profiles_all.csv") |>
+# Site type, same definition and colours as the main-text figures: pelagic vs littoral from
+# geo_site (P = pelagic, L = littoral); littoral sites split at the 45-98 g gap in macrophyte
+# biomass. Legend shows only the biomass range of each type.
+type_levels <- c("pelagic", "littoral", "dense")
+type_labels <- c("0–9", "16–45", "98–227")
+type_names  <- c(pelagic = "Pelagic", littoral = "Littoral", dense = "Dense littoral")
+type_fills  <- c(pelagic = "#e5f5e0", littoral = "#74c476", dense = "#006d2c")
+
+crosswalk <- read_csv("data/map/crosswalk_biomass.csv") %>%
+  mutate(
+    site_type = case_when(
+      startsWith(geo_site, "P") ~ "pelagic",
+      biomass < 80              ~ "littoral",
+      TRUE                      ~ "dense"),
+    site_type = factor(site_type, levels = type_levels))
+
+# x-axis labels: site number with its site type underneath, e.g. "Site 1\nPelagic"
+site_axis_labels <- setNames(paste0(crosswalk$rating_site, "\n", type_names[as.character(crosswalk$site_type)]),
+                             crosswalk$rating_site)
+
+#Assign season and join nutrient + biomass data
+nutrients <- tntp %>%
+  left_join(crosswalk, by = c("Site" = "site")) %>%
   mutate(season = case_when(
-    month(sampledate) %in% 3:5   ~ "Spring", # March-May
-    month(sampledate) %in% 6:8   ~ "Summer", # June-August
-    month(sampledate) %in% 9:10  ~ "Fall",   # September-October
-    month(sampledate) %in% 1:2   ~ "Under-ice")) %>%  # January-February, under ice
-  left_join(crosswalk, by = c("Site" = "site"))
+    month(Date) %in% 3:5   ~ "Spring", # March-May
+    month(Date) %in% 6:8   ~ "Summer", # June-August
+    month(Date) %in% 9:10  ~ "Fall",   # September-October
+    month(Date) %in% 1:2   ~ "Winter")) %>%  # January-February, under ice
+  mutate(season = factor(season, levels = c("Summer", "Fall", "Spring", "Winter")))
 
+# Summarize unfiltered nutrients by season for results
+nutrients.mean = nutrients %>% 
+  group_by(season) %>% 
+  filter(Filtered == "UF") %>% 
+  summarize(mean.tp = mean(TP_ug_l, na.rm = TRUE),
+            mean.tn = mean(TN_ug_l, na.rm = TRUE))
 
-ggplot(filter(profiles, !(Site == 4 & Depth > 0.9)&!(Site == 8 & Depth > 0.9)&!(Site == 6 & sampledate == as.Date("2022-07-25")))) + 
-  geom_path(aes(x = DO_perc, y = Depth, group = sampledate, color = season), linewidth = 0.3) +
-  geom_point(aes(x = DO_perc, y = Depth, fill = as.factor(season)), shape = 21, stroke = 0.2) +
-  
-  scale_fill_manual(values =c("#D55E00", "#CC79A7", "#009E73","darkblue"), name = "") +
-  scale_color_manual(values =c("#D55E00", "#CC79A7", "#009E73","darkblue")) +
-  geom_vline(xintercept = 100, linetype = "dashed")+
-  facet_wrap(~rating_site, scales = "free_y") +
-  xlab("Dissolved oxygen saturation (%)") +
-  guides(size = FALSE, color = 'none') +
-  scale_y_reverse(name = "Depth (m)") +
-  # scale_x_continuous(name = ((expression(paste("C", O[2], " (", mu,"mol ", L^-1,")")))), limits = c(0, 2000))+
-  theme_bw(base_size = 9) +
-  theme(legend.position = "bottom", 
-        legend.margin = margin(0, 0, 0, 0),
-        legend.box.margin = margin(0, 0, 0, 0))
+#Summer TN/TP joined with biomass rating
+summer_tptn <- nutrients %>%
+  filter(season == "Summer")
 
-ggsave('figures_SI/FigureS3.png', width = 6.5, height = 6, dpi = 500)
+#Summer chlorophyll joined with biomass rating
+chloro_summer <- chloro_all %>%
+  mutate(season = case_when(
+    month(date) %in% 3:5   ~ "Spring", # March-May
+    month(date) %in% 6:8   ~ "Summer", # June-August
+    month(date) %in% 9:10  ~ "Fall",   # September-October
+    month(date) %in% 1:2   ~ "Winter")) %>%  # January-February, under ice
+  filter(season == "Summer") %>%
+  left_join(crosswalk, by = c("site"))
 
+#TP plot
+tp_plot <- ggplot(summer_tptn %>% filter(Filtered == "UF"), aes(x = rating_site, fill = site_type,
+                                   y = TP_ug_l / 1000, group = rating_site)) +
+  geom_boxplot(outlier.shape = NA, linewidth = 0.2) +
+  geom_jitter(alpha = 0.5, size = 0.8) +
+  scale_fill_manual(values = type_fills, labels = type_labels, name = "Biomass (g)") +
+  scale_x_discrete(labels = site_axis_labels) +
+  ylab(expression(paste('Total Phosphorus (mg ', 'L'^-1, ')'))) +
+  xlab("") +
+  theme_bw(base_size = 9)
+
+#TN plot
+tn_plot <- ggplot(summer_tptn %>% filter(Filtered == "UF"), aes(x = rating_site, fill = site_type,
+                                   y = TN_ug_l / 1000, group = rating_site)) +
+  geom_boxplot(outlier.shape = NA, linewidth = 0.2) +
+  geom_jitter(alpha = 0.5, size = 0.8) +
+  scale_fill_manual(values = type_fills, labels = type_labels, name = "Biomass (g)") +
+  scale_x_discrete(labels = site_axis_labels) +
+  xlab("") +
+  ylab(expression(paste('Total Nitrogen (mg ', 'L'^-1, ')'))) +
+  theme_bw(base_size = 9)
+
+#Chlorophyll plot
+chloro_plot <- ggplot(chloro_summer, aes(x = rating_site, fill = site_type,
+                                         y = chla_correct_ugl, group = rating_site)) +
+  geom_boxplot(outlier.shape = NA, linewidth = 0.2) +
+  geom_jitter(alpha = 0.5, size = 0.8) +
+  scale_fill_manual(values = type_fills, labels = type_labels, name = "Biomass (g)") +
+  scale_x_discrete(labels = site_axis_labels) +
+  xlab("") +
+  ylab(expression(paste('Chlorophyll a (', mu, 'g ', 'L'^-1, ')'))) +
+  theme_bw(base_size = 9)
+
+## ---- Combine and save ----
+tp_plot / tn_plot / chloro_plot +
+  plot_layout(guides = 'collect') +
+  plot_annotation(tag_levels = 'a', tag_prefix = "(", tag_suffix = ")") &
+  theme(legend.position = "bottom",
+        plot.tag = element_text(size = 8),
+        legend.box.spacing = unit(0, "pt"),
+        legend.margin = margin(2, 0, 0, 0),
+        legend.box.margin = margin(-4, 0, 0, 0))
+
+ggsave(filename = 'figures_SI/FigureS3.png',
+       width = 6.5, height = 7, units = 'in', dpi = 500)
