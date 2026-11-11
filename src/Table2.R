@@ -53,3 +53,13 @@ table2 <- tibble(
 table2
 # * Ice melt: CO2 stored under ice released at ice-off (ice-covered days shown); linear accumulation
 #   to ice-off, plateau scenario in parentheses
+
+# Ice-melt contribution to the annual budget (Abstract and Discussion), linear and plateau scenarios.
+#   share of gross flux  = |ice melt| / sum of |seasonal fluxes| (definition behind the original 22%)
+#   share of efflux      = ice melt / (ice melt + spring), the seasons with net CO2 release
+ice_share <- function(ice) {
+  seasonal <- c(open_seasons$mean, ice$mean)
+  tibble(share_gross_pct = 100 * abs(ice$mean) / sum(abs(seasonal)),
+         share_efflux_pct = 100 * ice$mean / sum(seasonal[seasonal > 0]))
+}
+bind_rows(linear = ice_share(ice_linear), plateau = ice_share(ice_plateau), .id = "scenario")
