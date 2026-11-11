@@ -44,6 +44,8 @@ plot_df <- df |>
 
 print(distinct(plot_df, site, geo_site, biomass, site_type) |> arrange(biomass))
 
+# Summer ranges
+plot_df |> filter(season == "Summer") |> group_by(geo_site) |> summarise(mean = mean(co2_mean), min = min(co2_mean), max = max(co2_mean))
 # Fixed fraction of each response's overall range, so CO2 and pH letters sit equally far above their boxes
 co2_range <- diff(range(plot_df$co2_mean))
 ph_range  <- diff(range(plot_df$ph))
