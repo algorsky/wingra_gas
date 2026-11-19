@@ -96,4 +96,18 @@ multcompLetters(setNames(winter_contrasts$p_holm < 0.05,
 # respectively (Holm-corrected p = 0.007 and 0.009), while pelagic and littoral sites did not differ (p = 0.14).
 
 
+#### Spatial variability: coefficient of variation (CV) across the eight sites ####
+# CV for each sampling date = SD of the eight site means / their mean x 100.
+# Seasonal mean, SD and number of dates of the daily CVs (reported in Results, "Spatial CO2 patterns").
+cv_daily <- co2_dissolved %>%
+  group_by(season, date) %>%
+  summarise(cv = 100 * sd(CO2_mean) / mean(CO2_mean), .groups = "drop")
+
+cv_season <- cv_daily %>%
+  group_by(season) %>%
+  summarise(mean_cv = round(mean(cv)), sd_cv = round(sd(cv)), n_dates = n())
+cv_season
+# Winter 81% (SD 28, n = 3), summer 63% (SD 24, n = 10), fall 61% (SD 55, n = 4), spring 23% (SD 11, n = 5)
+
+
 
